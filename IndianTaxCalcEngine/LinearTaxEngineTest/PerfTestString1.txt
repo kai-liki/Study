@@ -1,0 +1,7 @@
+﻿#X
+
+T1=X+X+X+X+X+X+X+X+X+X
+T2=X+X+X+X+X+X+X+X+X+X+X+X+X+X+X+X+X+X+X+X
+T3=X+X+X+X+X+X+X+X+X+X+X+X+X+X+X+X+X+X+X+X+X+X+X+X+X+X+X+X+X+X
+T4=X+X+X+X+X+X+X+X+X+X+X+X+X+X+X+X+X+X+X+X+X+X+X+X+X+X+X+X+X+X+X+X+X+X+X+X+X+X+X+X
+[T1+T2+T3+T4=100]

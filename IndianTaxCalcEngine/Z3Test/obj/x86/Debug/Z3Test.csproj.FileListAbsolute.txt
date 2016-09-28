@@ -1,0 +1,7 @@
+C:\trash\Z3Test\Z3Test\obj\x86\Debug\ResolveAssemblyReference.cache
+C:\trash\Z3Test\Z3Test\bin\Debug\Z3Test.exe
+C:\trash\Z3Test\Z3Test\bin\Debug\Z3Test.pdb
+C:\trash\Z3Test\Z3Test\bin\Debug\Microsoft.Z3.dll
+C:\trash\Z3Test\Z3Test\obj\x86\Debug\Z3Test.exe
+C:\trash\Z3Test\Z3Test\obj\x86\Debug\Z3Test.pdb
+C:\trash\Z3Test\Z3Test\bin\Debug\Z3Test.exe.config

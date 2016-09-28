@@ -1,0 +1,16 @@
+D:\trash\ImageExtract\bin\Debug\ImageExtract.exe
+D:\trash\ImageExtract\bin\Debug\ImageExtract.pdb
+D:\trash\ImageExtract\obj\Debug\ResolveAssemblyReference.cache
+D:\trash\ImageExtract\obj\Debug\ImageExtract.Form1.resources
+D:\trash\ImageExtract\obj\Debug\ImageExtract.Properties.Resources.resources
+D:\trash\ImageExtract\obj\Debug\ImageExtract.csproj.GenerateResource.Cache
+D:\trash\ImageExtract\obj\Debug\ImageExtract.exe
+D:\trash\ImageExtract\obj\Debug\ImageExtract.pdb
+C:\SVNHome\liki-game\ImageExtract\bin\Debug\ImageExtract.exe
+C:\SVNHome\liki-game\ImageExtract\bin\Debug\ImageExtract.pdb
+C:\SVNHome\liki-game\ImageExtract\obj\Debug\ResolveAssemblyReference.cache
+C:\SVNHome\liki-game\ImageExtract\obj\Debug\ImageExtract.Form1.resources
+C:\SVNHome\liki-game\ImageExtract\obj\Debug\ImageExtract.Properties.Resources.resources
+C:\SVNHome\liki-game\ImageExtract\obj\Debug\ImageExtract.csproj.GenerateResource.Cache
+C:\SVNHome\liki-game\ImageExtract\obj\Debug\ImageExtract.exe
+C:\SVNHome\liki-game\ImageExtract\obj\Debug\ImageExtract.pdb
