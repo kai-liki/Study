@@ -47,21 +47,21 @@ class ReceptionController(Controller):
 
     def __init__(self):
         self.scene_reception.register_controller(self)
-        self.scene_reception.set_size(500, 500)
+        self.scene_reception.set_size(320, 240)
         self.scene_reception.set_bg_color((10, 10, 10))
 
         self.button_new_game.register_controller(self.new_game_controller)
         self.button_new_game.set_label(self.model.options[0])
-        self.button_new_game.set_position(50, 50)
+        self.button_new_game.set_position(60, 50)
         self.button_new_game.set_size(200, 50)
         self.button_new_game.set_layer(1)
-        self.button_new_game.set_bg_color((255, 255, 255))
+        self.button_new_game.set_bg_color((255, 0, 0))
         self.button_new_game.set_label_color((255, 0, 0))
         self.scene_reception.add_control(self.button_new_game)
 
         self.button_load_game.register_controller(self.load_game_controller)
         self.button_load_game.set_label(self.model.options[1])
-        self.button_load_game.set_position(50, 105)
+        self.button_load_game.set_position(60, 105)
         self.button_load_game.set_size(200, 50)
         self.button_load_game.set_layer(2)
         self.button_load_game.set_bg_color((255, 255, 255))
@@ -70,7 +70,7 @@ class ReceptionController(Controller):
 
         self.button_quit_game.register_controller(self.quit_game_controller)
         self.button_quit_game.set_label(self.model.options[2])
-        self.button_quit_game.set_position(50, 160)
+        self.button_quit_game.set_position(60, 160)
         self.button_quit_game.set_size(200, 50)
         self.button_quit_game.set_layer(3)
         self.button_quit_game.set_bg_color((255, 255, 255))

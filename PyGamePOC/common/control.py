@@ -174,12 +174,16 @@ class Button(VisibleControl):
                 controller.process(event_name=event_name, position=mouse_pos)
 
     def render(self):
-        surface = None
+        surface = super().render()
         if self.is_mouse_pressed:
             surface = get_image_surface(self.img_file_press)
         elif self.is_mouse_over:
             surface = get_image_surface(self.img_file_over)
         else:
             surface = get_image_surface(self.img_file_normal)
-        surface.blit(self.label_font.render(self.label, True, self.label_color), pygame.rect.Rect(30, 10, self.width, self.height))
+        button_rect = surface.get_rect()
+        label_surface = self.label_font.render(self.label, True, self.label_color)
+        label_rect = label_surface.get_rect()
+        label_pos = (button_rect.width / 2 - label_rect.width / 2, button_rect.height / 2 - label_rect.height / 2)
+        surface.blit(label_surface, pygame.rect.Rect(label_pos[0], label_pos[1], self.width, self.height))
         return surface

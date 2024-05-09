@@ -11,7 +11,8 @@ class GameController:
         pygame.init()
         pygame.font.init()
         self.clock = pygame.time.Clock()
-        self.screen = pygame.display.set_mode((500, 500))
+        flags = pygame.SHOWN | pygame.SCALED #| pygame.FULLSCREEN
+        self.screen = pygame.display.set_mode((320, 240), flags=flags)
         self.running = False
 
         from PyGamePOC.reception.reception import ReceptionController
