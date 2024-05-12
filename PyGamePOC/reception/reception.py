@@ -35,10 +35,10 @@ class QuitGameController(Controller):
 
 
 class ReceptionController(Controller):
-    scene_reception = Scene()
-    button_new_game = Button()
-    button_load_game = Button()
-    button_quit_game = Button()
+    scene_reception = Scene('reception')
+    button_new_game = Button('btn_new')
+    button_load_game = Button('btn_load')
+    button_quit_game = Button('btn_quit')
     new_game_controller = NewGameController()
     load_game_controller = LoadGameController()
     quit_game_controller = QuitGameController()
