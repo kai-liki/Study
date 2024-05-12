@@ -170,8 +170,8 @@ class Button(VisibleControl):
     label_font = pygame.font.SysFont('arial', 14)
 
     img_file_normal = ImageResource('default_button_normal', 'resources/imgs/Button.gif', (0, 0), (200, 50))
-    img_file_over = ImageResource('default_button_over', 'resources/imgs/Button.gif', (0, 51), (200, 50))
-    img_file_press = ImageResource('default_button_press', 'resources/imgs/Button.gif', (0, 101), (200, 50))
+    img_file_over = ImageResource('default_button_over', 'resources/imgs/Button.gif', (0, 50), (200, 50))
+    img_file_press = ImageResource('default_button_press', 'resources/imgs/Button.gif', (0, 100), (200, 50))
 
     is_mouse_pressed = False
 
