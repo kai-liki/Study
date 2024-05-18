@@ -260,7 +260,7 @@ def test_dialog():
     print(world.stages[STAGE_EVENT].score)
 
 
-def test_state_machine():
+def build_POC():
     # Init resources
     ui_resources = {
         'CHAR_WIFE_NORMAL': ImageResource('CHAR_WIFE_NORMAL', 'resources/imgs/NPC01.gif', (76, 0), (70, 95)),
@@ -319,11 +319,12 @@ def test_state_machine():
     stage_event.threshold = 50
 
     stage_wait_action = Stage()
-    stage_wait_action.ids = ['COOK', 'NEXT']
-    stage_wait_action.is_enabled = [True, True]
+    stage_wait_action.ids = ['COOK', 'NEXT', 'LEAVE']
+    stage_wait_action.is_enabled = [True, True, True]
 
     stage_action_begin = Stage()
     stage_action_begin.action_id = None
+    stage_action_begin.is_first_cook = True
 
     stage_action_end = Stage()
     stage_action_end.action_id = None
@@ -353,6 +354,9 @@ def test_state_machine():
     world = World(characters={'PLAYER': character_player, 'WIFE': character_wife}, stages=stages, calendar=calendar_week)
 
     def no_score(oid, world):
+        pass
+
+    def no_post(world):
         pass
 
     # Build cycle begin events: sunny event
@@ -426,12 +430,109 @@ def test_state_machine():
     teach_dialog = Dialog(ui_resources['SCENE_KITCHEN'], teach_dialog_flow, teach_score)
     teach_event = Event(teach_dialog, teach_condition, teach_post)
 
+    # Build action begin events: first cook
+    def first_cook_condition(world: World):
+        return world.stages[STAGE_ACTION_BEGIN].is_first_cook
+
+    def first_cook_post(world: World):
+        world.characters['PLAYER'].cook_skill = world.characters['PLAYER'].cook_skill + world.stages[STAGE_EVENT].score
+        world.stages[STAGE_ACTION_BEGIN].is_first_cook = False
+
+    first_cook_dialog_flow = [
+        {'speaker': 'WIFE', 'content': '你会做饭吗？'},
+        [
+            {'speaker': 'PLAYER', 'content': '我会呀。', 'next': 'FINISH'},
+            {'speaker': 'PLAYER', 'content': '我不会。。。教教我吧。', 'next': 'TEACH_START', 'oid': 'd1_teach'},
+        ],
+        {'id': 'TEACH_START', 'speaker': 'WIFE', 'content': '先洗菜。'},
+        {'speaker': 'WIFE', 'content': '再热油。'},
+        {'speaker': 'WIFE', 'content': '把菜放进去，用铲子炒。'},
+        {'speaker': 'WIFE', 'content': '炒熟就好了。'},
+        {'speaker': 'PLAYER', 'content': '这不是废话吗？'},
+        {'id': 'FINISH', 'speaker': 'WIFE', 'content': '那你做饭去吧！'}
+    ]
+
+    def first_cook_score(oid: str, world: World):
+        event_stage = world.stages[STAGE_EVENT]
+        if oid == 'd1_teach':
+            event_stage.score = 10
+
+    first_cook_dialog = Dialog(ui_resources['SCENE_KITCHEN'], first_cook_dialog_flow, first_cook_score)
+    first_cook_event = Event(first_cook_dialog, first_cook_condition, first_cook_post)
+
+    # Build action begin events: random chat
+    def random_chat_condition(world: World):
+        return random.randint(0, 7) == 1
+
+    random_chat_dialog_flow = [
+        {'speaker': 'WIFE', 'content': '进展怎么样？'},
+        {'speaker': 'PLAYER', 'content': '还行。'},
+        {'speaker': 'WIFE', 'content': '加油加油！'}
+    ]
+
+    random_chat_dialog = Dialog(ui_resources['SCENE_KITCHEN'], random_chat_dialog_flow, no_score)
+    random_chat_event = Event(random_chat_dialog, random_chat_condition, no_post)
+
+    # Build action end events: love chat
+    def love_chat_condition(world: World):
+        return random.randint(0, 3) == 1
+
+    love_chat_dialog_flow = [
+        {'speaker': 'WIFE', 'content': '老公辛苦啦！来擦擦汗。'},
+        {'speaker': 'PLAYER', 'content': '么么哒。'}
+    ]
+
+    love_chat_dialog = Dialog(ui_resources['SCENE_KITCHEN'], love_chat_dialog_flow, no_score)
+    love_chat_event = Event(love_chat_dialog, love_chat_condition, no_post)
+
+    # Build khalas events: happy khalas
+    def happy_khalas_condition(world: World):
+        return world.characters['PLAYER'].cooking_skill >= 100
+
+    happy_khalas_dialog_flow = [
+        {'speaker': 'WIFE', 'content': '老公好厉害！进步好大！'},
+        {'speaker': 'PLAYER', 'content': '都是老婆教的好。'},
+        {'speaker': 'WIFE', 'content': '今晚吃完饭早点去洗澡。'},
+        {'speaker': 'PLAYER', 'content': '嘿嘿，好好好！'},
+        {'speaker': 'WIFE', 'content': '以后晚饭都你来做。'},
+        {'speaker': 'PLAYER', 'content': '啊？？？'},
+    ]
+
+    happy_khalas_dialog = Dialog(ui_resources['SCENE_ENDING'], happy_khalas_dialog_flow, no_score)
+    happy_khalas_event = Event(happy_khalas_dialog, happy_khalas_condition, no_post)
+
+    # Build khalas events: sad khalas
+    def sad_khalas_condition(world: World):
+        return world.characters['PLAYER'].cooking_skill < 100
+
+    sad_khalas_dialog_flow = [
+        {'speaker': 'WIFE', 'content': '老公好厉害！进步好大！'},
+        {'speaker': 'PLAYER', 'content': '都是老婆教的好。'},
+        {'speaker': 'WIFE', 'content': '今晚吃完饭早点去洗澡。'},
+        {'speaker': 'PLAYER', 'content': '嘿嘿，好好好！'},
+        {'speaker': 'WIFE', 'content': '以后晚饭都你来做。'},
+        {'speaker': 'PLAYER', 'content': '啊？？？'},
+    ]
+
+    sad_khalas_dialog = Dialog(ui_resources['SCENE_ENDING'], sad_khalas_dialog_flow, no_score)
+    sad_khalas_event = Event(sad_khalas_dialog, sad_khalas_condition, no_post)
+
     almanac = Almanac()
     almanac.add_event(EVENT_CYCLE_BEGIN, 'SUNNY', sunny_event)
     almanac.add_event(EVENT_CYCLE_BEGIN, 'RAINING', raining_event)
     almanac.add_event(EVENT_CYCLE_END, 'TEACH', teach_event)
+    almanac.add_event(EVENT_ACTION_BEGIN, 'FIRST_COOK', first_cook_event)
+    almanac.add_event(EVENT_ACTION_BEGIN, 'RANDOM_CHAT', random_chat_event)
+    almanac.add_event(EVENT_ACTION_END, 'LOVE_CHAT', love_chat_event)
+    almanac.add_event(EVENT_KHALAS, 'HAPPY', happy_khalas_event)
+    almanac.add_event(EVENT_KHALAS, 'SAD', sad_khalas_event)
+
+    print('Done')
+
+    return world, almanac
 
 
 if __name__ == "__main__":
-    test_dialog()
+    # test_dialog()
+    build_POC()
 

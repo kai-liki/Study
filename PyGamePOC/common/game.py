@@ -1,9 +1,12 @@
 import pygame
 
+from PyGamePOC.common.control import Controller
+
 
 class GameController:
     screen: pygame.surface.Surface
     running = False
+    controllers = {}
     current_controller = None
     clock: pygame.time.Clock
 
@@ -15,14 +18,21 @@ class GameController:
         self.screen = pygame.display.set_mode((320, 240), flags=flags)
         self.running = False
 
+    def initialize_controllers(self, controllers: dict):
         from PyGamePOC.reception.reception import ReceptionController
         self.current_controller = ReceptionController()
+        self.current_controller.set_game(self)
+
+        for key, value in controllers:
+            assert type(value) is Controller
+            self.controllers[key] = value
+            value.set_game(self)
 
     def run(self):
         self.running = True
-        self.current_controller.set_game(self)
-        current_scene = self.current_controller.get_scene()
         while self.running:
+            current_scene = self.current_controller.get_scene()
+
             # process event
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:

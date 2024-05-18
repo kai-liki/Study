@@ -10,7 +10,7 @@ class NewGameController(Controller):
             self.on_new_game()
 
     def on_new_game(self):
-        print("New Game")
+        self.game.current_controller = self.get_game().controllers['ROOT']
 
 
 class LoadGameController(Controller):

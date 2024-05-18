@@ -164,6 +164,10 @@ class Scene(VisibleControl):
         return surface
 
 
+class Panel(VisibleControl):
+    pass
+
+
 class Button(VisibleControl):
     label = 'Text'
     label_color = (255, 255, 255)
