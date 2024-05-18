@@ -1,31 +1,54 @@
+import random
+
 import pygame
 
-from PyGamePOC.common.control import Controller, Scene
 from PyGamePOC.common.resource import ImageResource
 
 
 EVENT_CYCLE_BEGIN = 0
 EVENT_CYCLE_END = 1
-EVENT_CYCLE_BETWEEN = 2
-EVENT_ACTION_BEGIN = 3
-EVENT_ACTION_END = 4
-EVENT_KHALAS = 5
+EVENT_ACTION_BEGIN = 2
+EVENT_ACTION_END = 3
+EVENT_KHALAS = 4
 
-STATUS_START = 0
-STATUS_INTRO = 1
-STATUS_CYCLE_BEGIN = 2
-STATUS_CYCLE_END = 3
-STATUS_CYCLE_BETWEEN = 4
-STATUS_WAIT_ACTION = 5
-STATUS_ACTION_BEGIN = 6
-STATUS_ACTION_END = 7
-STATUS_KHALAS = 8
+STATE_START = 0
+STATE_INTRO = 1
+STATE_CYCLE_BEGIN = 2
+STATE_CYCLE_END = 3
+STATE_EVENT = 4
+STATE_WAIT_ACTION = 5
+STATE_ACTION_BEGIN = 6
+STATE_ACTION_END = 7
+STATE_KHALAS = 8
+STATE_IDLE = 9
+
+STAGE_START = 0
+STAGE_INTRO = 1
+STAGE_CYCLE_BEGIN = 2
+STAGE_CYCLE_END = 3
+STAGE_EVENT = 4
+STAGE_ACTION_BEGIN = 5
+STAGE_ACTION_END = 6
+STAGE_WAIT_ACTION = 7
+STAGE_KHALAS = 8
+STAGE_IDLE = 9
 
 
 class Character:
+    _attribute = {}
+
     def __init__(self, appearance: dict):
-        self._attribute = {}
         self.appearance = appearance
+
+    def __getattr__(self, item):
+        return self._attribute[item]
+
+    def __setattr__(self, key, value):
+        self._attribute[key] = value
+
+
+class Stage:
+    _attribute = {}
 
     def __getattr__(self, item):
         return self._attribute[item]
@@ -45,6 +68,8 @@ class Calendar:
     def append_rounds(self, rounds):
         self.rounds.extend(rounds)
 
+    def has_next(self):
+        return self.index + 1 < len(self.rounds)
     def __next__(self):
         if self.index + 1 < len(self.rounds):
             self.index = self.index + 1
@@ -56,11 +81,11 @@ class Calendar:
 class World:
     _attribute = {}
 
-    def __init__(self, characters: dict, scenes: dict, calendar: Calendar):
+    def __init__(self, characters: dict, stages: dict, calendar: Calendar):
         self.characters = characters
-        self.scenes = scenes
+        self.stages = stages
         self.calendar = calendar
-        self.status = STATUS_START
+        self.status = STATE_START
 
     def __getattr__(self, item):
         return self._attribute[item]
@@ -78,18 +103,7 @@ class World:
         pass
 
 
-class Effective:
-    effects = {}
-
-    def __init__(self, effectiveness):
-        assert callable(effectiveness)
-        self.effectiveness = effectiveness
-
-    def effect(self, world: World):
-        self.effectiveness(world)
-
-
-class Dialog(Effective):
+class Dialog:
     scene_resource: ImageResource = None
     dialog_list: list
     dialog_dict: dict
@@ -98,23 +112,25 @@ class Dialog(Effective):
     # Example:
     # dialog_flow =
     # [
-    #   {speaker : 'player', content : 'Good morning!'},
-    #   {speaker : 'girl', content : 'Morning! How are you?'},
-    #   [
-    #       {speaker : 'player', content : 'Fine, thank you. And you?'},
-    #       {speaker : 'player', content : 'I'm good. How are you?'},
-    #   ]
-    #   {speaker : 'girl', content : 'Super good!'},
-    #   {speaker : 'girl', content : 'I'm waiting for my boyfriend. Talk you later!'},
-    #   [
-    #       {speaker : 'player', content : 'Bye!', next : 'finish'},
-    #       {speaker : 'player', content : 'Wait! He is a liar!', next : 'entry_01'},
-    #   ]
-    #   {id : 'entry_01', speaker : 'girl', content : 'YOU SHUT UP!'},
-    #   {id : 'finish', content : 'The girl left me.'}
+    #     {'speaker': 'player', 'content': 'Good morning!'},
+    #     {'speaker': 'girl', 'content': 'Morning! How are you?'},
+    #     [
+    #         {'speaker': 'player', 'content': 'Fine, thank you. And you?', 'oid': 'd1_o1'},
+    #         {'speaker': 'player', 'content': 'I\'m good. How are you?', 'oid': 'd1_o2'},
+    #     ],
+    #     {'speaker': 'girl', 'content': 'Super good!'},
+    #     {'speaker': 'girl', 'content': 'I\'m waiting for my boyfriend. Talk you later!'},
+    #     [
+    #         {'speaker': 'player', 'content': 'Bye!', 'next': 'finish', 'oid': 'd2_o1'},
+    #         {'speaker': 'player', 'content': 'Wait! He is a liar!', 'next': 'entry_01', 'oid': 'd2_o2'},
+    #     ],
+    #     {'id': 'entry_01', 'speaker': 'girl', 'content': 'YOU SHUT UP!', 'next': 'finish'},
+    #     {'speaker': 'player', 'content': 'I don\'t have chance to speak.'},
+    #     {'id': 'finish', 'content': 'The girl left me.'}
     # ]
-    def __init__(self, scene_resource, dialog_flow, effectiveness):
-        super().__init__(effectiveness)
+    def __init__(self, scene_resource, dialog_flow, score):
+        assert callable(score)
+        self.score = score
         self.scene_resource = scene_resource
         self._build_dialogs(dialog_flow)
         self.dialog_index = -1
@@ -129,7 +145,7 @@ class Dialog(Effective):
             self.dialog_list.append(dialog)
             idx = idx + 1
 
-    def next_dialog(self, option=-1):
+    def next_dialog(self, world: World, option=-1):
         if self.dialog_index + 1 < len(self.dialog_list):
             jumped = False
             if self.dialog_index != -1:
@@ -140,6 +156,8 @@ class Dialog(Effective):
                         jumped = True
                 elif type(dialog) is list and option >= 0:
                     option_dialog = dialog[option]
+                    if 'oid' in option_dialog:
+                        self.score(oid=option_dialog['oid'], world=world)
                     if 'next' in option_dialog:
                         self.dialog_index = self.dialog_dict[option_dialog['next']]
                         jumped = True
@@ -179,49 +197,48 @@ class Almanac:
     def __init__(self):
         pass
 
-    def divine(self, world: World):
+    def divine(self, world: World, event_stage: int):
         pass
 
     def add_event(self, event_stage: int, event_id: str, event: Event):
         self.event_lib[event_stage][event_id] = event
 
 
-class UI:
-    scene_intro: ImageResource
-    scene_main: ImageResource
-    scene_event: ImageResource
-    button_actions: dict
-    panel_actions: dict
-    panel_message: ImageResource
-    panel_dialog: ImageResource
-    button_option: ImageResource
-    scene_ending: ImageResource
+def test_dialog():
+    event_stage = Stage()
+    event_stage.score = 0
+    world = World({}, {STAGE_EVENT: event_stage}, Calendar())
 
+    def score(oid: str, world: World):
+        event_stage = world.stages[STAGE_EVENT]
+        if oid in ['d1_o1', 'd1_o2']:
+            event_stage.score = event_stage.score + 50
 
-if __name__ == "__main__":
-    def effect(world: World):
-        print('Heal the word!')
+        if oid == 'd2_o1':
+            event_stage.score = event_stage.score + 50
+        elif oid == 'd2_o2':
+            event_stage.score = event_stage.score - 40
 
     dialog_flow = [
         {'speaker': 'player', 'content': 'Good morning!'},
         {'speaker': 'girl', 'content': 'Morning! How are you?'},
         [
-            {'speaker': 'player', 'content': 'Fine, thank you. And you?'},
-            {'speaker': 'player', 'content': 'I\'m good. How are you?'},
+            {'speaker': 'player', 'content': 'Fine, thank you. And you?', 'oid': 'd1_o1'},
+            {'speaker': 'player', 'content': 'I\'m good. How are you?', 'oid': 'd1_o2'},
         ],
         {'speaker': 'girl', 'content': 'Super good!'},
         {'speaker': 'girl', 'content': 'I\'m waiting for my boyfriend. Talk you later!'},
         [
-            {'speaker': 'player', 'content': 'Bye!', 'next': 'finish'},
-            {'speaker': 'player', 'content': 'Wait! He is a liar!', 'next': 'entry_01'},
+            {'speaker': 'player', 'content': 'Bye!', 'next': 'finish', 'oid': 'd2_o1'},
+            {'speaker': 'player', 'content': 'Wait! He is a liar!', 'next': 'entry_01', 'oid': 'd2_o2'},
         ],
         {'id': 'entry_01', 'speaker': 'girl', 'content': 'YOU SHUT UP!', 'next': 'finish'},
         {'speaker': 'player', 'content': 'I don\'t have chance to speak.'},
         {'id': 'finish', 'content': 'The girl left me.'}
     ]
-    event_dialog = Dialog(None, dialog_flow, effect)
+    event_dialog = Dialog(None, dialog_flow, score)
 
-    dialog = event_dialog.next_dialog()
+    dialog = event_dialog.next_dialog(world)
     while dialog is not None:
         if type(dialog) is dict:
             if 'speaker' in dialog:
@@ -229,7 +246,7 @@ if __name__ == "__main__":
             else:
                 print(str.format("{}",  dialog['content']))
             # option = input()
-            dialog = event_dialog.next_dialog()
+            dialog = event_dialog.next_dialog(world)
         else:
             for option_dialog in dialog:
                 if 'speaker' in option_dialog:
@@ -237,8 +254,184 @@ if __name__ == "__main__":
                 else:
                     print(str.format("- {}", option_dialog['content']))
             option = input()
-            dialog = event_dialog.next_dialog(int(option))
+            dialog = event_dialog.next_dialog(world, int(option))
 
-    world = World({}, {}, Calendar())
-    event_dialog.effect(world)
+    print(event_stage.score)
+    print(world.stages[STAGE_EVENT].score)
+
+
+def test_state_machine():
+    # Init resources
+    ui_resources = {
+        'CHAR_WIFE_NORMAL': ImageResource('CHAR_WIFE_NORMAL', 'resources/imgs/NPC01.gif', (76, 0), (70, 95)),
+        'CHAR_WIFE_ANGRY': ImageResource('CHAR_WIFE_ANGRY', 'resources/imgs/NPC01.gif', (1, 0), (70, 95)),
+        'SCENE_INTRO': ImageResource('SCENE_INTRO', 'resources/imgs/Livingroom.gif', (0, 0), (320, 240)),
+        'SCENE_MAIN': ImageResource('SCENE_MAIN', 'resources/imgs/Livingroom.gif', (0, 0), (320, 240)),
+        'SCENE_ACTION': ImageResource('SCENE_ACTION', 'resources/imgs/Livingroom.gif', (0, 0), (320, 240)),
+        'SCENE_ENDING': ImageResource('SCENE_ENDING', 'resources/imgs/Livingroom.gif', (0, 0), (320, 240)),
+        'SCENE_KITCHEN': ImageResource('SCENE_KITCHEN', 'resources/imgs/Kitchen.gif', (0, 0), (320, 240)),
+        'PANEL_ACTION': ImageResource('PANEL_ACTION', 'resources/imgs/ActionPanel.gif', (0, 0), (200, 150)),
+        'PANEL_MESSAGE': ImageResource('PANEL_MESSAGE', 'resources/imgs/MessagePanel.gif', (0, 0), (150, 150)),
+        'PANEL_DIALOG': ImageResource('PANEL_DIALOG', 'resources/imgs/DialogPanel.gif', (0, 0), (320, 120)),
+        'ACTION_SAMPLE_NORMAL': ImageResource('ACTION_SAMPLE_NORMAL', 'resources/imgs/ActionButton.gif', (0, 0), (50, 50)),
+        'ACTION_SAMPLE_OVER': ImageResource('ACTION_SAMPLE_OVER', 'resources/imgs/ActionButton.gif', (50, 0), (50, 50)),
+        'ACTION_SAMPLE_DOWN': ImageResource('ACTION_SAMPLE_DOWN', 'resources/imgs/ActionButton.gif', (100, 0), (50, 50)),
+        'OPTION_DEFAULT_NORMAL': ImageResource('OPTION_DEFAULT_NORMAL', 'resources/imgs/OptionButton.gif', (0, 0), (280, 20)),
+        'OPTION_DEFAULT_OVER': ImageResource('OPTION_DEFAULT_OVER', 'resources/imgs/OptionButton.gif', (0, 20), (280, 20)),
+        'OPTION_DEFAULT_DOWN': ImageResource('OPTION_DEFAULT_DOWN', 'resources/imgs/OptionButton.gif', (0, 40), (280, 20))
+    }
+
+    # Build the calendar
+    calendar_week = Calendar()
+    calendar_week.append_rounds(('MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN'))
+
+    # Build characters
+    character_player = Character({})
+    character_player.name = 'KK'
+    character_player.cooking_skill = 0
+    character_player.luckiness = 100
+    character_player.strength = 100
+    character_player.max_strength = 100
+
+    character_wife = Character(
+        {'NORMAL': ui_resources['CHAR_WIFE_NORMAL'],
+         'ANGRY': ui_resources['CHAR_WIFE_ANGRY']}
+    )
+    character_wife.name = 'MM'
+    character_wife.love = 50
+
+    # Build stages
+    stage_start = Stage()
+    stage_start.tick = 0
+    stage_start.max_tick = 600
+
+    stage_intro = Stage()
+    stage_intro.introduction = 'This is a game of life.'
+
+    stage_cycle_begin = Stage()
+    stage_cycle_begin.index = 0
+    stage_cycle_begin.weather = 'Sunny'
+
+    stage_event = Stage()
+    stage_event.event_type = None
+    stage_event.event_id = None
+    stage_event.score = 0
+    stage_event.threshold = 50
+
+    stage_wait_action = Stage()
+    stage_wait_action.ids = ['COOK', 'NEXT']
+    stage_wait_action.is_enabled = [True, True]
+
+    stage_action_begin = Stage()
+    stage_action_begin.action_id = None
+
+    stage_action_end = Stage()
+    stage_action_end.action_id = None
+
+    stage_cycle_end = Stage()
+
+    stage_khalas = Stage()
+    stage_khalas.final_score = 0
+
+    stage_idle = Stage()
+    stage_idle.description = 'Have a good weekend!'
+
+    stages = {
+        STAGE_START: stage_start,
+        STAGE_INTRO: stage_intro,
+        STAGE_CYCLE_BEGIN: stage_cycle_begin,
+        STAGE_CYCLE_END: stage_cycle_end,
+        STAGE_EVENT: stage_event,
+        STAGE_ACTION_BEGIN: stage_action_begin,
+        STAGE_ACTION_END: stage_action_end,
+        STAGE_WAIT_ACTION: stage_wait_action,
+        STAGE_KHALAS: stage_khalas,
+        STAGE_IDLE: stage_idle
+    }
+
+    # Build world
+    world = World(characters={'PLAYER': character_player, 'WIFE': character_wife}, stages=stages, calendar=calendar_week)
+
+    def no_score(oid, world):
+        pass
+
+    # Build cycle begin events: sunny event
+    def sunny_condition(world: World):
+        stage = world.stages[STAGE_CYCLE_BEGIN]
+        return stage.index % 2 == 0
+
+    def sunny_post(world: World):
+        stage = world.stages[STAGE_CYCLE_BEGIN]
+        stage.weather = 'Sunny'
+        player = world.characters['PLAYER']
+        player.luckiness = 100
+
+    sunny_dialog_flow = [
+        {'content': 'It''s a sunny day.'}
+    ]
+
+    sunny_dialog = Dialog(ui_resources['SCENE_MAIN'], sunny_dialog_flow, no_score)
+    sunny_event = Event(sunny_dialog, sunny_condition, sunny_post)
+
+    # Build cycle begin events: raining event
+    def raining_condition(world: World):
+        stage = world.stages[STAGE_CYCLE_BEGIN]
+        return stage.index % 2 != 0
+
+    def raining_post(world: World):
+        stage = world.stages[STAGE_CYCLE_BEGIN]
+        stage.weather = 'Raining'
+        player = world.characters['PLAYER']
+        player.luckiness = 50
+
+    raining_dialog_flow = [
+        {'content': 'It''s a raining day.'}
+    ]
+
+    raining_dialog = Dialog(ui_resources['SCENE_MAIN'], raining_dialog_flow, no_score)
+    raining_event = Event(raining_dialog, raining_condition, raining_post)
+
+    # Build cycle end events: teach event
+    def teach_condition(world: World):
+        return random.randint(0, 2) == 1
+
+    def teach_post(world: World):
+        player = world.characters['PLAYER']
+        player.cooking_skill = player.cooking_skill + 5
+        wife = world.characters['WIFE']
+        wife.love = wife.love + world.stages[STAGE_EVENT].score
+
+    teach_dialog_flow = [
+        {'speaker': 'PLAYER', 'content': 'Cooking is difficult!'},
+        {'speaker': 'WIFE', 'content': 'Come on! Let me give you a lesson.'},
+        [
+            {'speaker': 'PLAYER', 'content': 'You are so sweet!', 'oid': 'd1_agree'},
+            {'speaker': 'PLAYER', 'content': 'I''m not interested.', 'next': 'FINISH_NEGATIVE', 'oid': 'd1_reject'},
+        ],
+        {'speaker': 'WIFE', 'content': 'You put too much salt!'},
+        {'speaker': 'WIFE', 'content': 'Put less next time. It will be better.'},
+        {'speaker': 'PLAYER', 'content': 'Thank you my darling!'},
+        {'speaker': 'PLAYER', 'content': 'I''ll follow your instruction next time.', 'next': 'finish'},
+        {'id': 'FINISH_POSITIVE', 'speaker': 'WIFE', 'content': 'Me Me Da!'},
+        {'id': 'FINISH_NEGATIVE', 'content': 'She leave me alone.'}
+    ]
+
+    def teach_score(oid: str, world: World):
+        event_stage = world.stages[STAGE_EVENT]
+        if oid == 'd1_agree':
+            event_stage.score = 50
+        elif oid == 'd1_reject':
+            event_stage.score = -50
+
+    teach_dialog = Dialog(ui_resources['SCENE_KITCHEN'], teach_dialog_flow, teach_score)
+    teach_event = Event(teach_dialog, teach_condition, teach_post)
+
+    almanac = Almanac()
+    almanac.add_event(EVENT_CYCLE_BEGIN, 'SUNNY', sunny_event)
+    almanac.add_event(EVENT_CYCLE_BEGIN, 'RAINING', raining_event)
+    almanac.add_event(EVENT_CYCLE_END, 'TEACH', teach_event)
+
+
+if __name__ == "__main__":
+    test_dialog()
 

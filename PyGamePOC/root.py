@@ -16,13 +16,13 @@ class RootController(Controller):
 
     action_button = []
 
-    def __init__(self, world: edu.World, almanac: edu.Almanac, ui: edu.UI):
+    def __init__(self, world: edu.World, almanac: edu.Almanac, ui: edu.UIResource):
         self.world = world
         self.almanac = almanac
         self.ui = ui
 
     def get_scene(self):
-        if self.world.status is edu.STATUS_START:
+        if self.world.status is edu.STATE_START:
             pass
 
     def process(self):
