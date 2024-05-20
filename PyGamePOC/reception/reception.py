@@ -10,7 +10,8 @@ class NewGameController(Controller):
             self.on_new_game()
 
     def on_new_game(self):
-        self.game.current_controller = self.get_game().controllers['ROOT']
+        root_controller = self.get_game().new_controller('ROOT')
+        self.get_game().current_controller = root_controller
 
 
 class LoadGameController(Controller):
@@ -35,17 +36,17 @@ class QuitGameController(Controller):
 
 
 class ReceptionController(Controller):
-    scene_reception = Scene('reception')
-    button_new_game = Button('btn_new')
-    button_load_game = Button('btn_load')
-    button_quit_game = Button('btn_quit')
-    new_game_controller = NewGameController()
-    load_game_controller = LoadGameController()
-    quit_game_controller = QuitGameController()
-
-    model = Reception()
-
     def __init__(self):
+        self.scene_reception = Scene('reception')
+        self.button_new_game = Button('btn_new')
+        self.button_load_game = Button('btn_load')
+        self.button_quit_game = Button('btn_quit')
+        self.new_game_controller = NewGameController()
+        self.load_game_controller = LoadGameController()
+        self.quit_game_controller = QuitGameController()
+
+        self.model = Reception()
+
         self.scene_reception.register_controller(self)
         self.scene_reception.set_size(320, 240)
         self.scene_reception.set_bg_color((10, 10, 10))

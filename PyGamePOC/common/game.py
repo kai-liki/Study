@@ -1,7 +1,5 @@
 import pygame
 
-from PyGamePOC.common.control import Controller
-
 
 class GameController:
     screen: pygame.surface.Surface
@@ -18,15 +16,19 @@ class GameController:
         self.screen = pygame.display.set_mode((320, 240), flags=flags)
         self.running = False
 
-    def initialize_controllers(self, controllers: dict):
-        from PyGamePOC.reception.reception import ReceptionController
-        self.current_controller = ReceptionController()
-        self.current_controller.set_game(self)
-
-        for key, value in controllers:
-            assert type(value) is Controller
+    def initialize_controllers(self, controllers: dict, default: str):
+        from PyGamePOC.common.control import Controller
+        for key, value in controllers.items():
+            assert issubclass(value, Controller)
             self.controllers[key] = value
-            value.set_game(self)
+
+        self.current_controller = self.new_controller(default)
+
+    def new_controller(self, key: str):
+        controller_type = self.controllers[key]
+        controller = controller_type()
+        controller.set_game(self)
+        return controller
 
     def run(self):
         self.running = True

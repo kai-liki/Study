@@ -1,10 +1,10 @@
 import pygame
 
-from PyGamePOC.common.game import GameController
-from PyGamePOC.common.resource import get_full_image_surface, get_image_surface, ImageResource
+from PyGamePOC.common.resource import get_image_surface, ImageResource
 
 
 class Controller:
+    from PyGamePOC.common.game import GameController
     game: GameController
 
     def set_game(self, game: GameController):
@@ -21,13 +21,12 @@ class Controller:
 
 
 class Control:
-    name: str
-    game: GameController
-    controllers: list
 
-    def __init__(self, name):
+    def __init__(self, name, controllers=None, game_controller=None):
+        from PyGamePOC.common.game import GameController
+        self.game = game_controller
         self.name = name
-        self.controllers = []
+        self.controllers = controllers if controllers is not None else []
 
     def register_controller(self, controller: Controller):
         self.controllers.append(controller)
@@ -37,12 +36,14 @@ class Control:
 
 
 class VisibleControl(Control):
-    x, y = (0, 0)
-    width, height = (100, 100)
-    layer = 0
-    bg_color = (0, 0, 0)
-    is_mouse_over = False
-    img_background: ImageResource = None
+    def __init__(self, name, controllers=None, game_controller=None):
+        super().__init__(name, controllers, game_controller)
+        self.x, y = (0, 0)
+        self.width, height = (100, 100)
+        self.layer = 0
+        self.bg_color = (0, 0, 0)
+        self.is_mouse_over = False
+        self.img_background: ImageResource = None
 
     def set_position(self, x: int, y: int):
         self.x, self.y = (x, y)
@@ -76,6 +77,7 @@ class VisibleControl(Control):
         if self.img_background is None:
             surface.fill(self.bg_color)
         else:
+            surface.fill(self.bg_color)
             bg_surface = get_image_surface(self.img_background)
             bg_rect = bg_surface.get_rect()
             surface.blit(bg_surface, bg_rect)
@@ -83,11 +85,9 @@ class VisibleControl(Control):
 
 
 class Scene(VisibleControl):
-    visible_controls: list
-
-    def __init__(self, name: str):
+    def __init__(self, name: str, visible_controls=None):
         super().__init__(name)
-        self.visible_controls = []
+        self.visible_controls = visible_controls if visible_controls is not None else []
 
     def add_control(self, control: VisibleControl):
         templist = [item for item in self.visible_controls if item.name == control.name]
@@ -122,7 +122,7 @@ class Scene(VisibleControl):
             for control in self.visible_controls:
                 rect = control.get_rect()
                 if rect.collidepoint(mouse_pos):
-                    control.handle_event(pygame.QUIT)
+                    control.handle_event(event)
                     processed = True
             if not processed:
                 mouse_buttons = pygame.mouse.get_pressed(3)
@@ -140,12 +140,12 @@ class Scene(VisibleControl):
                 if rect.collidepoint(mouse_pos):
                     if not control.get_is_mouse_over():
                         control.set_is_mouse_over(True)
-                        control.handle_event(pygame.QUIT)
+                        control.handle_event(event)
                     processed = True
                 else:
                     if control.get_is_mouse_over():
                         control.set_is_mouse_over(False)
-                        control.handle_event(pygame.QUIT)
+                        control.handle_event(event)
                         processed = True
 
             if not processed:
@@ -168,22 +168,67 @@ class Panel(VisibleControl):
     pass
 
 
+class Label(VisibleControl):
+
+    def __init__(self, name, controllers=None, game_controller=None):
+        super().__init__(name, controllers, game_controller)
+        self.labels = ['Text']
+        self.label_color = (255, 255, 255)
+        self.label_font = pygame.font.SysFont('arial', 14)
+        self.label_space = 10
+
+    def set_labels(self, labels: list):
+        self.labels = labels
+
+    def set_label_space(self, space: int):
+        self.label_space = space
+
+    def set_label_color(self, label_color: tuple):
+        self.label_color = label_color
+
+    def set_font(self, font: pygame.font.SysFont):
+        self.label_font = font
+
+    def render(self):
+        surface = pygame.surface.Surface((self.width, self.height))
+        border_rect = surface.get_rect()
+        i = 0
+        for label in self.labels:
+            label_surface = self.label_font.render(label, True, self.label_color)
+            label_rect = label_surface.get_rect()
+            label_pos = (border_rect.width / 2 - label_rect.width / 2, i * self.label_space + border_rect.height / 2 - label_rect.height / 2)
+            surface.blit(label_surface, pygame.rect.Rect(label_pos[0], label_pos[1], self.width, self.height))
+            i = i + 1
+        return surface
+
+
 class Button(VisibleControl):
-    label = 'Text'
-    label_color = (255, 255, 255)
-    label_font = pygame.font.SysFont('arial', 14)
 
-    img_file_normal = ImageResource('default_button_normal', 'resources/imgs/Button.gif', (0, 0), (200, 50))
-    img_file_over = ImageResource('default_button_over', 'resources/imgs/Button.gif', (0, 50), (200, 50))
-    img_file_press = ImageResource('default_button_press', 'resources/imgs/Button.gif', (0, 100), (200, 50))
+    def __init__(self, name, controllers=None, game_controller=None):
+        super().__init__(name, controllers, game_controller)
+        self.label = 'Button'
+        self.label_color = (255, 255, 255)
+        self.label_font = pygame.font.SysFont('arial', 14)
 
-    is_mouse_pressed = False
+        self.img_file_normal = ImageResource('default_button_normal', 'resources/imgs/Button.gif', (0, 0), (200, 50))
+        self.img_file_over = ImageResource('default_button_over', 'resources/imgs/Button.gif', (0, 50), (200, 50))
+        self.img_file_press = ImageResource('default_button_press', 'resources/imgs/Button.gif', (0, 100), (200, 50))
+
+        self.is_mouse_pressed = False
 
     def set_label(self, label: str):
         self.label = label
 
     def set_label_color(self, label_color: tuple):
         self.label_color = label_color
+
+    def set_button_images(self, image_resources: tuple):
+        if image_resources[0] is not None:
+            self.img_file_normal = image_resources[0]
+        if image_resources[1] is not None:
+            self.img_file_over = image_resources[1]
+        if image_resources[2] is not None:
+            self.img_file_press = image_resources[2]
 
     def handle_event(self, event):
         event_name: str = None

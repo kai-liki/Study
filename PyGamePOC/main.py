@@ -2,12 +2,16 @@
 import pygame
 
 from PyGamePOC.common.game import GameController
-from PyGamePOC.root import POCRootController
 
 if __name__ == "__main__":
     game = GameController()
+
+    from PyGamePOC.reception.reception import ReceptionController
+    from PyGamePOC.root import POCRootController
+
     game.initialize_controllers({
-        "ROOT": POCRootController()
-    })
+        "RECEPTION": ReceptionController,
+        "ROOT": POCRootController
+    }, "RECEPTION")
     game.run()
 
