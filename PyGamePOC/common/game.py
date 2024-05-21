@@ -12,12 +12,12 @@ class GameController:
         pygame.init()
         pygame.font.init()
         self.clock = pygame.time.Clock()
-        flags = pygame.SHOWN | pygame.SCALED #| pygame.FULLSCREEN
+        flags = pygame.SHOWN | pygame.SCALED | pygame.RESIZABLE #| pygame.FULLSCREEN
         self.screen = pygame.display.set_mode((320, 240), flags=flags)
         self.running = False
 
     def initialize_controllers(self, controllers: dict, default: str):
-        from PyGamePOC.common.control import Controller
+        from common.control import Controller
         for key, value in controllers.items():
             assert issubclass(value, Controller)
             self.controllers[key] = value

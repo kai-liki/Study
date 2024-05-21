@@ -1,10 +1,5 @@
 import random
 
-import pygame
-
-from PyGamePOC.common.resource import ImageResource
-
-
 EVENT_CYCLE_BEGIN = 0
 EVENT_CYCLE_END = 1
 EVENT_ACTION_BEGIN = 2
@@ -35,26 +30,36 @@ STAGE_IDLE = 9
 
 
 class Character:
-    _attribute = {}
 
     def __init__(self, appearance: dict):
+        self._attribute = {}
         self.appearance = appearance
 
     def __getattr__(self, item):
-        return self._attribute[item]
+        if item != "_attribute":
+            return self._attribute[item]
+        return super().__getattribute__(item)
 
     def __setattr__(self, key, value):
-        self._attribute[key] = value
+        if key != "_attribute":
+            self._attribute[key] = value
+        return super().__setattr__(key, value)
 
 
 class Stage:
-    _attribute = {}
+
+    def __init__(self):
+        self._attribute = {}
 
     def __getattr__(self, item):
-        return self._attribute[item]
+        if item != "_attribute":
+            return self._attribute[item]
+        return super().__getattribute__(item)
 
     def __setattr__(self, key, value):
-        self._attribute[key] = value
+        if key != "_attribute":
+            self._attribute[key] = value
+        return super().__setattr__(key, value)
 
 
 class Calendar:
@@ -84,20 +89,25 @@ class Calendar:
         else:
             return None
 
+
 class World:
-    _attribute = {}
 
     def __init__(self, characters: dict, stages: dict, calendar: Calendar):
+        self._attribute = {}
         self.characters = characters
         self.stages = stages
         self.calendar = calendar
         self.status = STATE_START
 
     def __getattr__(self, item):
-        return self._attribute[item]
+        if item != "_attribute":
+            return self._attribute[item]
+        return super().__getattribute__(item)
 
     def __setattr__(self, key, value):
-        self._attribute[key] = value
+        if key != "_attribute":
+            self._attribute[key] = value
+        return super().__setattr__(key, value)
 
     def applicable_actions(self):
         return ()
@@ -110,10 +120,6 @@ class World:
 
 
 class Dialog:
-    scene_resource: ImageResource = None
-    dialog_list: list
-    dialog_dict: dict
-    dialog_index: int
 
     # Example:
     # dialog_flow =
@@ -175,7 +181,6 @@ class Dialog:
 
 
 class Event:
-    dialog: Dialog
 
     def __init__(self, dialog: Dialog, condition_func, post_func):
         assert callable(condition_func)
@@ -191,17 +196,16 @@ class Event:
 
 
 class Almanac:
-    event_lib = [
-        {},
-        {},
-        {},
-        {},
-        {},
-        {},
-    ]
 
     def __init__(self):
-        pass
+        self.event_lib = [
+            {},
+            {},
+            {},
+            {},
+            {},
+            {},
+        ]
 
     def divine(self, world: World, event_stage: int):
         pass

@@ -1,10 +1,10 @@
 import pygame
 
-from PyGamePOC.common.resource import get_image_surface, ImageResource
+from common.resource import get_image_surface, ImageResource
 
 
 class Controller:
-    from PyGamePOC.common.game import GameController
+    from common.game import GameController
     game: GameController
 
     def set_game(self, game: GameController):
@@ -23,7 +23,7 @@ class Controller:
 class Control:
 
     def __init__(self, name, controllers=None, game_controller=None):
-        from PyGamePOC.common.game import GameController
+        from common.game import GameController
         self.game = game_controller
         self.name = name
         self.controllers = controllers if controllers is not None else []
@@ -38,7 +38,7 @@ class Control:
 class VisibleControl(Control):
     def __init__(self, name, controllers=None, game_controller=None):
         super().__init__(name, controllers, game_controller)
-        self.x, y = (0, 0)
+        self.x, self.y = (0, 0)
         self.width, height = (100, 100)
         self.layer = 0
         self.bg_color = (0, 0, 0)
@@ -216,6 +216,8 @@ class Button(VisibleControl):
 
         self.is_mouse_pressed = False
 
+        self.is_enabled = True
+
     def set_label(self, label: str):
         self.label = label
 
@@ -230,34 +232,41 @@ class Button(VisibleControl):
         if image_resources[2] is not None:
             self.img_file_press = image_resources[2]
 
-    def handle_event(self, event):
-        event_name: str = None
-        if not self.is_mouse_over:
-            self.is_mouse_pressed = False
-            event_name = 'mouse_leave'
-        else:
-            event_name = 'mouse_over'
-            mouse_buttons = pygame.mouse.get_pressed(3)
-            pygame.mouse.get_pressed()
-            if mouse_buttons[0]:
-                self.is_mouse_pressed = True
-                event_name = 'mouse_press'
-            else:
-                if self.is_mouse_pressed is True:
-                    self.is_mouse_pressed = False
-                    event_name = 'mouse_click'
+    def set_is_enabled(self, is_enabled):
+        self.is_enabled = is_enabled
 
-        if event_name is not None:
-            mouse_pos = pygame.mouse.get_pos()
-            for controller in self.controllers:
-                controller.process(event_name=event_name, position=mouse_pos)
+    def handle_event(self, event):
+        if self.is_enabled:
+            event_name: str = None
+            if not self.is_mouse_over:
+                self.is_mouse_pressed = False
+                event_name = 'mouse_leave'
+            else:
+                event_name = 'mouse_over'
+                mouse_buttons = pygame.mouse.get_pressed(3)
+                pygame.mouse.get_pressed()
+                if mouse_buttons[0]:
+                    self.is_mouse_pressed = True
+                    event_name = 'mouse_press'
+                else:
+                    if self.is_mouse_pressed is True:
+                        self.is_mouse_pressed = False
+                        event_name = 'mouse_click'
+
+            if event_name is not None:
+                mouse_pos = pygame.mouse.get_pos()
+                for controller in self.controllers:
+                    controller.process(event_name=event_name, position=mouse_pos)
 
     def render(self):
-        # surface = super().render()
-        if self.is_mouse_pressed:
-            surface = get_image_surface(self.img_file_press)
-        elif self.is_mouse_over:
-            surface = get_image_surface(self.img_file_over)
+        if self.is_enabled:
+            # surface = super().render()
+            if self.is_mouse_pressed:
+                surface = get_image_surface(self.img_file_press)
+            elif self.is_mouse_over:
+                surface = get_image_surface(self.img_file_over)
+            else:
+                surface = get_image_surface(self.img_file_normal)
         else:
             surface = get_image_surface(self.img_file_normal)
         button_rect = surface.get_rect()

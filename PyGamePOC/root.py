@@ -1,9 +1,9 @@
 import pygame
 
-from PyGamePOC.common.control import Controller, Scene, Button, Panel, VisibleControl, Label
-import PyGamePOC.common.edu as edu
-from PyGamePOC.common.game import GameController
-from PyGamePOC.common.resource import ImageResource
+from common.control import Controller, Scene, Button, Panel, VisibleControl, Label
+import common.edu as edu
+from common.game import GameController
+from common.resource import ImageResource
 
 
 class CookController(Controller):
@@ -17,7 +17,7 @@ class CookController(Controller):
             self.on_cook()
 
     def on_cook(self):
-        print('Cook')
+        self.world.status = edu.STATE_ACTION_BEGIN
 
 
 class NextController(Controller):
@@ -31,7 +31,7 @@ class NextController(Controller):
             self.on_next_cycle()
 
     def on_next_cycle(self):
-        print('Next Cycle')
+        self.world.status = edu.STATE_CYCLE_END
 
 
 class LeaveController(Controller):
@@ -47,6 +47,17 @@ class LeaveController(Controller):
     def on_leave(self):
         self.world.status = edu.STATE_IDLE
         self.game.current_controller = self.get_game().new_controller('RECEPTION')
+
+
+class ActionController(Controller):
+    def __init__(self, world: edu.World):
+        super().__init__()
+        self.world = world
+
+    def process(self, **kwargs):
+        event_name = kwargs['event_name']
+        if event_name == 'mouse_click':
+            self.world.status = edu.STATE_ACTION_END
 
 
 class POCRootController(Controller):
@@ -147,10 +158,25 @@ class POCRootController(Controller):
         self.scene_ending.set_size(320, 240)
         self.scene_ending.set_background_image(self.ui_resources['SCENE_ENDING'])
 
+        # Build ACTION scene
+        self.scene_action.register_controller(self)
+        self.scene_action.set_size(320, 240)
+        self.scene_action.set_background_image(self.ui_resources['SCENE_KITCHEN'])
+
+        self.panel_action.set_size(200, 150)
+        self.panel_action.set_position(60, 45)
+        self.panel_action.set_bg_color((255, 255, 255))
+        self.panel_action.set_background_image(self.ui_resources['PANEL_ACTION'])
+        self.action_panel_controller = ActionController(self.world)
+        self.panel_action.register_controller(self.action_panel_controller)
+        self.scene_action.add_control(self.panel_action)
+
+
     def __init__(self):
         self.scene_start = Scene('SCENE_START')
         self.scene_intro = Scene('SCENE_INTRO')
         self.scene_main = Scene('SCENE_MAIN')
+        self.scene_action = Scene('SCENE_ACTION')
         self.scene_ending = Scene('SCENE_ENDING')
 
         self.panel_calendar = Panel('PANEL_CALENDAR')
@@ -189,9 +215,18 @@ class POCRootController(Controller):
         elif self.world.status is edu.STATE_INTRO:
             return self.scene_intro
         elif self.world.status is edu.STATE_CYCLE_BEGIN:
+            self.on_cycle_begin()
             return self.scene_main
         elif self.world.status is edu.STATE_WAIT_ACTION:
             return self.scene_main
+        elif self.world.status is edu.STATE_CYCLE_END:
+            self.on_cycle_end()
+            return self.scene_main
+        elif self.world.status is edu.STATE_ACTION_BEGIN:
+            return self.scene_action
+        elif self.world.status is edu.STATE_ACTION_END:
+            self.on_action_end()
+            return self.scene_action
         elif self.world.status is edu.STATE_IDLE:
             return self.scene_ending
 
@@ -203,13 +238,31 @@ class POCRootController(Controller):
         # elif event_name == 'mouse_click':
         #     self.on_mouse_click()
 
+    def on_cycle_begin(self):
+        player = self.world.characters['PLAYER']
+        player.strength = player.max_strength
+        self.button_cook.set_is_enabled(True)
+        current = self.world.calendar.next()
+        if current is not None:
+            self.label_calendar.set_labels([current])
+
+        self.world.status = edu.STATE_WAIT_ACTION
+
+    def on_cycle_end(self):
+        self.world.status = edu.STAGE_CYCLE_BEGIN
+
+    def on_action_end(self):
+        player = self.world.characters['PLAYER']
+        player.strength = 0 if player.strength < 10 else player.strength - 10
+        self.button_cook.set_is_enabled(player.strength >= 10)
+        self.world.status = edu.STATE_WAIT_ACTION
+
     def on_key_down(self, key):
         if self.world.status is edu.STATE_INTRO:
-            current = self.world.calendar.next()
-            if current is not None:
-                self.label_calendar.set_labels([current])
             self.world.status = edu.STATE_CYCLE_BEGIN
             # TOTO: Add event
+        if self.world.status is edu.STATE_ACTION_BEGIN:
+            self.world.status = edu.STATE_ACTION_END
         elif self.world.status is edu.STATE_IDLE:
             self.game.current_controller = self.game.new_controller('RECEPTION')
 

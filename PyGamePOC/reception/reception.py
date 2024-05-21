@@ -1,6 +1,6 @@
-from PyGamePOC.common.control import Controller, Scene, Button
-from PyGamePOC.common.game import GameController
-from PyGamePOC.reception.model import Reception
+from common.control import Controller, Scene, Button
+from common.game import GameController
+from reception.model import Reception
 
 
 class NewGameController(Controller):
