@@ -325,7 +325,7 @@ def build_POC(ui_resources):
 
     # Build characters
     character_player = Character({})
-    character_player.name = 'KK'
+    character_player.name = 'Student'
     character_player.cooking_skill = 0
     character_player.luckiness = 100
     character_player.strength = 100
@@ -335,7 +335,7 @@ def build_POC(ui_resources):
         {'DEFAULT': ui_resources['CHAR_WIFE_NORMAL'],
          'ANGRY': ui_resources['CHAR_WIFE_ANGRY']}
     )
-    character_wife.name = 'MM'
+    character_wife.name = 'Teacher'
     character_wife.love = 50
 
     # Build stages
@@ -480,15 +480,21 @@ def build_POC(ui_resources):
     first_cook_dialog_flow = [
         {'speaker': 'WIFE', 'content': '你会做饭吗？'},
         [
-            {'speaker': 'PLAYER', 'content': '我会呀。', 'next': 'FINISH'},
+            {'speaker': 'PLAYER', 'content': '我会呀。', 'next': 'TEACH_ASK'},
             {'speaker': 'PLAYER', 'content': '我不会。。。教教我吧。', 'next': 'TEACH_START', 'oid': 'd1_teach'},
         ],
         {'id': 'TEACH_START', 'speaker': 'WIFE', 'content': '先洗菜。'},
         {'speaker': 'WIFE', 'content': '再热油。'},
         {'speaker': 'WIFE', 'content': '把菜放进去，用铲子炒。'},
         {'speaker': 'WIFE', 'content': '炒熟就好了。'},
-        {'speaker': 'PLAYER', 'content': '这不是废话吗？'},
-        {'id': 'FINISH', 'speaker': 'WIFE', 'content': '那你做饭去吧！'}
+        {'speaker': 'PLAYER', 'content': '这不是废话吗？', 'next': 'FINISH'},
+        {'id': 'TEACH_ASK', 'speaker': 'WIFE', 'content': '你都会做什么饭呀？'},
+        [
+            {'speaker': 'PLAYER', 'content': '味增汤', 'next': 'FINISH'},
+            {'speaker': 'PLAYER', 'content': '蒜蓉虾球', 'next': 'FINISH'},
+            {'speaker': 'PLAYER', 'content': '红烧牛肉面', 'next': 'FINISH'},
+        ],
+        {'id': 'FINISH', 'speaker': 'WIFE', 'content': '那你快去做吧！'}
     ]
 
     # first_cook_dialog_flow = [
