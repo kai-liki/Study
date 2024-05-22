@@ -182,7 +182,7 @@ class Label(VisibleControl):
         super().__init__(name, controllers, game_controller)
         self.labels = ['Text']
         self.label_color = (255, 255, 255)
-        self.label_font = pygame.font.SysFont('arial', 14)
+        self.label_font = pygame.font.SysFont('songti', 14)
         self.label_space = 10
 
     def set_labels(self, labels: list):
@@ -216,7 +216,7 @@ class Button(VisibleControl):
         super().__init__(name, controllers, game_controller)
         self.label = 'Button'
         self.label_color = (255, 255, 255)
-        self.label_font = pygame.font.SysFont('arial', 14)
+        self.label_font = pygame.font.SysFont('songti', 14)
 
         self.img_file_normal = ImageResource('default_button_normal', 'resources/imgs/Button.gif', (0, 0), (200, 50))
         self.img_file_over = ImageResource('default_button_over', 'resources/imgs/Button.gif', (0, 50), (200, 50))

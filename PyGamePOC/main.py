@@ -4,6 +4,8 @@ import pygame
 from common.game import GameController
 
 if __name__ == "__main__":
+    fonts = pygame.font.get_fonts()
+    print(fonts)
     game = GameController()
 
     from reception.reception import ReceptionController

@@ -133,11 +133,11 @@ class POCRootController(Controller):
         # self.scene_intro.set_background_image(self.ui_resources['SCENE_INTRO'])
 
         intro_label = Label('LABEL_INTRO')
-        intro_label.set_labels(['This is a POC game.', 'It comes from my life.', '欢迎建议！'])
+        intro_label.set_labels(['这是一个POC。', '欢迎建议！'])
         intro_label.set_label_color((255, 255, 255))
         intro_label.set_size(100, 100)
         intro_label.set_position(100, 90)
-        intro_label.set_font(pygame.font.SysFont('arial', 10))
+        intro_label.set_font(pygame.font.SysFont('songti', 10))
         self.scene_intro.add_control(intro_label)
 
         # Build MAIN scene
@@ -150,7 +150,7 @@ class POCRootController(Controller):
         self.label_calendar.set_position(260, 20)
         self.label_calendar.set_labels([''])
         self.label_calendar.set_label_color((255, 255, 255))
-        self.label_calendar.set_font(pygame.font.SysFont('arial', 18))
+        self.label_calendar.set_font(pygame.font.SysFont('songti', 18))
         self.scene_main.add_control(self.label_calendar)
 
         self.button_cook.set_size(50, 50)
@@ -216,7 +216,8 @@ class POCRootController(Controller):
 
         self.panel_event_dialog_label.set_size(280, 40)
         self.panel_event_dialog_label.set_position(20, 112)
-        self.panel_event_dialog_label.set_font(pygame.font.SysFont('arial', 12))
+        self.panel_event_dialog_label.set_font(pygame.font.SysFont('songti', 12))
+        # self.panel_event_dialog_label.set_font(pygame.font.SysFont('Xingkai', 12))
         self.panel_event_dialog_label.set_label_space(15)
         self.panel_event_dialog_label.set_visible(False)
         self.panel_event_dialog_label.set_layer(2)
@@ -227,7 +228,7 @@ class POCRootController(Controller):
             option_button_controller = EventDialogOptionController(self.world, option_idx, self)
             button.set_size(280, 20)
             button.set_position(20, 155 + option_idx * 22)
-            button.set_font(pygame.font.SysFont('arial', 12))
+            button.set_font(pygame.font.SysFont('songti', 12))
             button.set_layer(3)
             button.set_label('Option')
             button.set_button_images((self.ui_resources['OPTION_DEFAULT_NORMAL'],
@@ -299,6 +300,8 @@ class POCRootController(Controller):
             self.panel_event_dialog_label.set_visible(False)
         else:
             self.panel_event_dialog.set_visible(True)
+            self.panel_event_dialog_char.set_visible(False)
+            self.panel_event_dialog_label.set_visible(True)
             if type(dialog) is dict:
                 for button in self.buttons_dialog_option:
                     button.set_visible(False)
@@ -316,7 +319,6 @@ class POCRootController(Controller):
                         dialog['content']
                     ]
                 self.panel_event_dialog_label.set_labels(labels)
-                self.panel_event_dialog_label.set_visible(True)
             else:
                 option_idx = 0
                 for option_dialog in dialog:

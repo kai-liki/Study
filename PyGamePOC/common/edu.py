@@ -409,7 +409,7 @@ def build_POC(ui_resources):
         player.luckiness = 100
 
     sunny_dialog_flow = [
-        {'content': 'It''s a sunny day.'}
+        {'speaker': 'WIFE', 'content': 'It''s a sunny day.'}
     ]
 
     sunny_conversation = Conversation(ui_resources['SCENE_MAIN'], sunny_dialog_flow, no_score)
@@ -477,35 +477,35 @@ def build_POC(ui_resources):
         world.characters['PLAYER'].cooking_skill = world.characters['PLAYER'].cooking_skill + world.stages[STAGE_EVENT].score
         world.stages[STAGE_ACTION_BEGIN].is_first_cook = False
 
-    # first_cook_dialog_flow = [
-    #     {'speaker': 'WIFE', 'content': '你会做饭吗？'},
-    #     [
-    #         {'speaker': 'PLAYER', 'content': '我会呀。', 'next': 'FINISH'},
-    #         {'speaker': 'PLAYER', 'content': '我不会。。。教教我吧。', 'next': 'TEACH_START', 'oid': 'd1_teach'},
-    #     ],
-    #     {'id': 'TEACH_START', 'speaker': 'WIFE', 'content': '先洗菜。'},
-    #     {'speaker': 'WIFE', 'content': '再热油。'},
-    #     {'speaker': 'WIFE', 'content': '把菜放进去，用铲子炒。'},
-    #     {'speaker': 'WIFE', 'content': '炒熟就好了。'},
-    #     {'speaker': 'PLAYER', 'content': '这不是废话吗？'},
-    #     {'id': 'FINISH', 'speaker': 'WIFE', 'content': '那你做饭去吧！'}
-    # ]
-
     first_cook_dialog_flow = [
-        {'speaker': 'WIFE', 'content': 'Can you cook?'},
+        {'speaker': 'WIFE', 'content': '你会做饭吗？'},
         [
-            {'speaker': 'PLAYER', 'content': 'Yes!', 'next': 'FINISH'},
-            {'speaker': 'PLAYER', 'content': 'No. Please teach me.', 'next': 'TEACH_START', 'oid': 'd1_teach'},
+            {'speaker': 'PLAYER', 'content': '我会呀。', 'next': 'FINISH'},
+            {'speaker': 'PLAYER', 'content': '我不会。。。教教我吧。', 'next': 'TEACH_START', 'oid': 'd1_teach'},
         ],
-        {'id': 'TEACH_START', 'speaker': 'WIFE', 'content': 'Wash vegetables first!'},
-        {'speaker': 'WIFE', 'content': 'Cut the vegetables to pieces.'},
-        {'speaker': 'WIFE', 'content': 'Then heat the oil.'},
-        {'speaker': 'WIFE', 'content': 'Put the vegetable to the pot.'},
-        {'speaker': 'WIFE', 'content': 'Stir and fry them.'},
-        {'speaker': 'WIFE', 'content': 'Then it''s done'},
-        {'speaker': 'PLAYER', 'content': '...'},
-        {'id': 'FINISH', 'speaker': 'WIFE', 'content': 'Go ahead!'}
+        {'id': 'TEACH_START', 'speaker': 'WIFE', 'content': '先洗菜。'},
+        {'speaker': 'WIFE', 'content': '再热油。'},
+        {'speaker': 'WIFE', 'content': '把菜放进去，用铲子炒。'},
+        {'speaker': 'WIFE', 'content': '炒熟就好了。'},
+        {'speaker': 'PLAYER', 'content': '这不是废话吗？'},
+        {'id': 'FINISH', 'speaker': 'WIFE', 'content': '那你做饭去吧！'}
     ]
+
+    # first_cook_dialog_flow = [
+    #     {'speaker': 'WIFE', 'content': 'Can you cook?'},
+    #     [
+    #         {'speaker': 'PLAYER', 'content': 'Yes!', 'next': 'FINISH'},
+    #         {'speaker': 'PLAYER', 'content': 'No. Please teach me.', 'next': 'TEACH_START', 'oid': 'd1_teach'},
+    #     ],
+    #     {'id': 'TEACH_START', 'speaker': 'WIFE', 'content': 'Wash vegetables first!'},
+    #     {'speaker': 'WIFE', 'content': 'Cut the vegetables to pieces.'},
+    #     {'speaker': 'WIFE', 'content': 'Then heat the oil.'},
+    #     {'speaker': 'WIFE', 'content': 'Put the vegetable to the pot.'},
+    #     {'speaker': 'WIFE', 'content': 'Stir and fry them.'},
+    #     {'speaker': 'WIFE', 'content': 'Then it''s done'},
+    #     {'speaker': 'PLAYER', 'content': '...'},
+    #     {'id': 'FINISH', 'speaker': 'WIFE', 'content': 'Go ahead!'}
+    # ]
 
     def first_cook_score(oid: str, world: World):
         event_stage = world.stages[STAGE_EVENT]
