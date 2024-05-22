@@ -1,4 +1,4 @@
-<mxfile host="Electron" modified="2024-05-18T10:14:13.256Z" agent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/24.4.0 Chrome/120.0.6099.109 Electron/28.1.0 Safari/537.36" etag="IHhqBBVZWio9UL8Qr4qI" version="24.4.0" type="device" pages="3">
+<mxfile host="Electron" modified="2024-05-22T04:59:13.235Z" agent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/24.4.0 Chrome/120.0.6099.109 Electron/28.1.0 Safari/537.36" etag="jADL8pQLxs5H8g8TtZeX" version="24.4.0" type="device" pages="3">
   <diagram id="C5RBs43oDa-KdzZeNtuy" name="Page-1">
     <mxGraphModel dx="1781" dy="674" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
       <root>
@@ -230,7 +230,7 @@
     </mxGraphModel>
   </diagram>
   <diagram id="-CObE-koGKswiRflYulj" name="EDU">
-    <mxGraphModel dx="954" dy="1843" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+    <mxGraphModel dx="1468" dy="2206" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
@@ -617,7 +617,7 @@
         <mxCell id="Iq_jDqCsM_0UhEjQL2F3-94" value="Init EVENT scene and dialog.&lt;div&gt;event_type = EVENT_CYCLE_BEGIN&lt;/div&gt;" style="ellipse;whiteSpace=wrap;html=1;" parent="1" vertex="1">
           <mxGeometry x="1450" y="590" width="230" height="40" as="geometry" />
         </mxCell>
-        <mxCell id="Iq_jDqCsM_0UhEjQL2F3-100" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=1;entryY=0.25;entryDx=0;entryDy=0;curved=1;" parent="1" source="Iq_jDqCsM_0UhEjQL2F3-98" target="Iq_jDqCsM_0UhEjQL2F3-78" edge="1">
+        <mxCell id="Iq_jDqCsM_0UhEjQL2F3-100" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=1;entryY=0.5;entryDx=0;entryDy=0;curved=1;" parent="1" source="Iq_jDqCsM_0UhEjQL2F3-98" target="Iq_jDqCsM_0UhEjQL2F3-77" edge="1">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
         <mxCell id="Iq_jDqCsM_0UhEjQL2F3-98" value="Prepare ACTION begin scene." style="ellipse;whiteSpace=wrap;html=1;" parent="1" vertex="1">
@@ -834,7 +834,7 @@
         <mxCell id="Iq_jDqCsM_0UhEjQL2F3-178" value="Prepare NEXT scene." style="ellipse;whiteSpace=wrap;html=1;" parent="1" vertex="1">
           <mxGeometry x="990" y="1080" width="130" height="40" as="geometry" />
         </mxCell>
-        <mxCell id="vmvge3TuwZczWqmm_H1U-1" value="&lt;h1 style=&quot;margin-top: 0px;&quot;&gt;STAGE&lt;/h1&gt;&lt;div style=&quot;background-color:#1e1f22;color:#bcbec4&quot;&gt;&lt;pre style=&quot;font-family:&#39;JetBrains Mono&#39;,monospace;font-size:9.8pt;&quot;&gt;&lt;pre style=&quot;font-family:&#39;JetBrains Mono&#39;,monospace;font-size:9.8pt;&quot;&gt;&lt;div&gt;&lt;pre style=&quot;font-family:&#39;JetBrains Mono&#39;,monospace;font-size:9.8pt;&quot;&gt;STAGE_START = &lt;span style=&quot;color:#2aacb8;&quot;&gt;0&lt;br&gt;&lt;/span&gt;STAGE_INTRO = &lt;span style=&quot;color:#2aacb8;&quot;&gt;1&lt;br&gt;&lt;/span&gt;STAGE_CYCLE_BEGIN = &lt;span style=&quot;color:#2aacb8;&quot;&gt;2&lt;br&gt;&lt;/span&gt;STAGE_CYCLE_END = &lt;span style=&quot;color:#2aacb8;&quot;&gt;3&lt;br&gt;&lt;/span&gt;STAGE_EVENT = &lt;span style=&quot;color:#2aacb8;&quot;&gt;4&lt;br&gt;&lt;/span&gt;STAGE_ACTION_BEGIN = &lt;span style=&quot;color:#2aacb8;&quot;&gt;5&lt;br&gt;&lt;/span&gt;STAGE_ACTION_END = &lt;span style=&quot;color:#2aacb8;&quot;&gt;6&lt;br&gt;&lt;/span&gt;STAGE_WAIT_ACTION = &lt;span style=&quot;color:#2aacb8;&quot;&gt;7&lt;br&gt;&lt;/span&gt;STAGE_KHALAS = &lt;span style=&quot;color:#2aacb8;&quot;&gt;8&lt;br&gt;&lt;/span&gt;STAGE_IDLE = &lt;span style=&quot;color:#2aacb8;&quot;&gt;9&lt;/span&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/pre&gt;&lt;/pre&gt;&lt;/div&gt;" style="text;html=1;whiteSpace=wrap;overflow=hidden;rounded=0;" vertex="1" parent="1">
+        <mxCell id="vmvge3TuwZczWqmm_H1U-1" value="&lt;h1 style=&quot;margin-top: 0px;&quot;&gt;STAGE&lt;/h1&gt;&lt;div style=&quot;background-color:#1e1f22;color:#bcbec4&quot;&gt;&lt;pre style=&quot;font-family:&#39;JetBrains Mono&#39;,monospace;font-size:9.8pt;&quot;&gt;&lt;pre style=&quot;font-family:&#39;JetBrains Mono&#39;,monospace;font-size:9.8pt;&quot;&gt;&lt;div&gt;&lt;pre style=&quot;font-family:&#39;JetBrains Mono&#39;,monospace;font-size:9.8pt;&quot;&gt;STAGE_START = &lt;span style=&quot;color:#2aacb8;&quot;&gt;0&lt;br&gt;&lt;/span&gt;STAGE_INTRO = &lt;span style=&quot;color:#2aacb8;&quot;&gt;1&lt;br&gt;&lt;/span&gt;STAGE_CYCLE_BEGIN = &lt;span style=&quot;color:#2aacb8;&quot;&gt;2&lt;br&gt;&lt;/span&gt;STAGE_CYCLE_END = &lt;span style=&quot;color:#2aacb8;&quot;&gt;3&lt;br&gt;&lt;/span&gt;STAGE_EVENT = &lt;span style=&quot;color:#2aacb8;&quot;&gt;4&lt;br&gt;&lt;/span&gt;STAGE_ACTION_BEGIN = &lt;span style=&quot;color:#2aacb8;&quot;&gt;5&lt;br&gt;&lt;/span&gt;STAGE_ACTION_END = &lt;span style=&quot;color:#2aacb8;&quot;&gt;6&lt;br&gt;&lt;/span&gt;STAGE_WAIT_ACTION = &lt;span style=&quot;color:#2aacb8;&quot;&gt;7&lt;br&gt;&lt;/span&gt;STAGE_KHALAS = &lt;span style=&quot;color:#2aacb8;&quot;&gt;8&lt;br&gt;&lt;/span&gt;STAGE_IDLE = &lt;span style=&quot;color:#2aacb8;&quot;&gt;9&lt;/span&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/pre&gt;&lt;/pre&gt;&lt;/div&gt;" style="text;html=1;whiteSpace=wrap;overflow=hidden;rounded=0;" parent="1" vertex="1">
           <mxGeometry x="1660" width="230" height="210" as="geometry" />
         </mxCell>
       </root>

@@ -44,6 +44,7 @@ class VisibleControl(Control):
         self.bg_color = (0, 0, 0)
         self.is_mouse_over = False
         self.img_background: ImageResource = None
+        self.is_visible = True
 
     def set_position(self, x: int, y: int):
         self.x, self.y = (x, y)
@@ -69,6 +70,9 @@ class VisibleControl(Control):
     def set_bg_color(self, bg_color: tuple):
         self.bg_color = bg_color
 
+    def set_visible(self, is_visible):
+        self.is_visible = is_visible
+
     def get_rect(self):
         return pygame.rect.Rect(self.x, self.y, self.width, self.height)
 
@@ -77,10 +81,13 @@ class VisibleControl(Control):
         if self.img_background is None:
             surface.fill(self.bg_color)
         else:
-            surface.fill(self.bg_color)
-            bg_surface = get_image_surface(self.img_background)
-            bg_rect = bg_surface.get_rect()
-            surface.blit(bg_surface, bg_rect)
+            # surface.fill(self.bg_color)
+            surface = get_image_surface(self.img_background)
+            surface = surface.convert_alpha()
+            # bg_rect = surface.get_rect()
+            # alpha_surface = bg_surface.convert_alpha()
+            # surface.blit(bg_surface, bg_rect)
+            # surface.blit(alpha_surface, bg_rect)
         return surface
 
 
@@ -158,8 +165,9 @@ class Scene(VisibleControl):
         surface = super().render()
         if len(self.visible_controls) != 0:
             for control in self.visible_controls:
-                control_surface = control.render()
-                surface.blit(control_surface, control.get_rect())
+                if control.is_visible:
+                    control_surface = control.render().convert_alpha()
+                    surface.blit(control_surface, control.get_rect())
 
         return surface
 
@@ -223,6 +231,9 @@ class Button(VisibleControl):
 
     def set_label_color(self, label_color: tuple):
         self.label_color = label_color
+
+    def set_font(self, font: pygame.font.SysFont):
+        self.label_font = font
 
     def set_button_images(self, image_resources: tuple):
         if image_resources[0] is not None:

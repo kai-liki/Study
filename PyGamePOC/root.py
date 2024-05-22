@@ -7,9 +7,10 @@ from common.resource import ImageResource
 
 
 class CookController(Controller):
-    def __init__(self, world: edu.World):
+    def __init__(self, world: edu.World, root_controller):
         super().__init__()
         self.world = world
+        self.root_controller = root_controller
 
     def process(self, **kwargs):
         event_name = kwargs['event_name']
@@ -17,7 +18,7 @@ class CookController(Controller):
             self.on_cook()
 
     def on_cook(self):
-        self.world.status = edu.STATE_ACTION_BEGIN
+        self.root_controller.try_trigger_event(edu.EVENT_ACTION_BEGIN, edu.STATE_ACTION_BEGIN)
 
 
 class NextController(Controller):
@@ -60,8 +61,37 @@ class ActionController(Controller):
             self.world.status = edu.STATE_ACTION_END
 
 
-class POCRootController(Controller):
+class EventDialogController(Controller):
+    def __init__(self, world: edu.World):
+        super().__init__()
+        self.world = world
 
+    def process(self, **kwargs):
+        event_name = kwargs['event_name']
+        if event_name == 'mouse_click':
+            print('Click event dialog panel')
+
+
+class EventDialogOptionController(Controller):
+    def __init__(self, world: edu.World, option_value: int, root_controller):
+        super().__init__()
+        self.world = world
+        self.option_value = option_value
+        self.root_controller = root_controller
+
+    def process(self, **kwargs):
+        event_name = kwargs['event_name']
+        if event_name == 'mouse_click':
+            print('Click event dialog option', self.option_value)
+            assert self.root_controller.current_event is not None
+            event = self.root_controller.current_event
+            conversation = event.get_conversation()
+
+            conversation.next_dialog(self.world, self.option_value)
+            self.root_controller.build_event_scene(event)
+
+
+class POCRootController(Controller):
     def load_ui_resource(self):
         self.ui_resources = {
             'LOGO': ImageResource('LOGO', 'resources/imgs/logo.gif', (0, 0), (100, 62)),
@@ -83,7 +113,7 @@ class POCRootController(Controller):
             'OPTION_DEFAULT_DOWN': ImageResource('OPTION_DEFAULT_DOWN', 'resources/imgs/OptionButton.gif', (0, 40), (280, 20))
         }
 
-    def init_scene(self):
+    def _init_scene(self):
         # Build START scene
         self.scene_start.register_controller(self)
         self.scene_start.set_size(320, 240)
@@ -129,7 +159,7 @@ class POCRootController(Controller):
         self.button_cook.set_button_images((self.ui_resources['ACTION_SAMPLE_NORMAL'],
                                             self.ui_resources['ACTION_SAMPLE_OVER'],
                                             self.ui_resources['ACTION_SAMPLE_DOWN']))
-        self.cook_controller = CookController(self.world)
+        self.cook_controller = CookController(self.world, self)
         self.button_cook.register_controller(self.cook_controller)
         self.scene_main.add_control(self.button_cook)
 
@@ -171,6 +201,48 @@ class POCRootController(Controller):
         self.panel_action.register_controller(self.action_panel_controller)
         self.scene_action.add_control(self.panel_action)
 
+        # Build EVENT scene
+        self.scene_event.register_controller(self)
+        self.scene_event.set_size(320, 240)
+        self.scene_event.set_bg_color((0, 0, 0))
+
+        self.panel_event_dialog.set_size(300, 120)
+        self.panel_event_dialog.set_position(10, 110)
+        self.panel_event_dialog.set_visible(False)
+        self.panel_event_dialog.set_layer(1)
+        self.event_dialog_controller = EventDialogController(self.world)
+        self.panel_event_dialog.register_controller(self.event_dialog_controller)
+        self.scene_event.add_control(self.panel_event_dialog)
+
+        self.panel_event_dialog_label.set_size(280, 40)
+        self.panel_event_dialog_label.set_position(20, 112)
+        self.panel_event_dialog_label.set_font(pygame.font.SysFont('arial', 12))
+        self.panel_event_dialog_label.set_label_space(15)
+        self.panel_event_dialog_label.set_visible(False)
+        self.panel_event_dialog_label.set_layer(2)
+        self.scene_event.add_control(self.panel_event_dialog_label)
+
+        option_idx = 0
+        for button in self.buttons_dialog_option:
+            option_button_controller = EventDialogOptionController(self.world, option_idx, self)
+            button.set_size(280, 20)
+            button.set_position(20, 155 + option_idx * 22)
+            button.set_font(pygame.font.SysFont('arial', 12))
+            button.set_layer(3)
+            button.set_label('Option')
+            button.set_button_images((self.ui_resources['OPTION_DEFAULT_NORMAL'],
+                                      self.ui_resources['OPTION_DEFAULT_OVER'],
+                                      self.ui_resources['OPTION_DEFAULT_DOWN']))
+            button.set_visible(False)
+            button.register_controller(option_button_controller)
+            self.scene_event.add_control(button)
+            option_idx = option_idx + 1
+
+        self.panel_event_dialog_char.set_size(80, 100)
+        self.panel_event_dialog_char.set_position(250, 50)
+        self.panel_event_dialog_char.set_visible(False)
+        self.panel_event_dialog_char.set_layer(4)
+        self.scene_event.add_control(self.panel_event_dialog_char)
 
     def __init__(self):
         self.scene_start = Scene('SCENE_START')
@@ -178,19 +250,31 @@ class POCRootController(Controller):
         self.scene_main = Scene('SCENE_MAIN')
         self.scene_action = Scene('SCENE_ACTION')
         self.scene_ending = Scene('SCENE_ENDING')
+        self.scene_event = Scene('SCENE_EVENT')
 
         self.panel_calendar = Panel('PANEL_CALENDAR')
         self.panel_action = Panel('PANEL_ACTION')
+        self.panel_event_dialog = Panel('PANEL_EVENT_DIALOG')
+        self.panel_event_dialog_label = Label('LABEL_EVENT_DIALOG_LABEL')
+        self.panel_event_dialog_char = Panel('PANEL_EVENT_DIALOG_CHAR')
 
         self.button_leave = Button('FUNC_BTN_LEAVE')
         self.button_next = Button('FUNC_BTN_NEXT')
 
         self.button_cook = Button('ACTION_BTN_COOK')
 
+        self.buttons_dialog_option = [
+            Button('OPTION_BTN_1'),
+            Button('OPTION_BTN_2'),
+            Button('OPTION_BTN_3'),
+        ]
+
         self.leave_controller: LeaveController
         self.next_controller: NextController
 
         self.cook_controller: CookController
+
+        self.event_dialog_controller: EventDialogController
 
         self.label_calendar = Label('LABEL_CALENDAR')
 
@@ -200,7 +284,49 @@ class POCRootController(Controller):
         world, almanac = edu.build_POC(self.ui_resources)
         self.world = world
         self.almanac = almanac
-        self.init_scene()
+        self._init_scene()
+
+        # Init event
+        self.current_event = None
+
+    def build_event_scene(self, event: edu.Event):
+        conversation = event.get_conversation()
+        self.scene_event.set_background_image(conversation.get_scene_resource())
+        dialog = conversation.get_current_dialog()
+        if dialog is None:
+            self.panel_event_dialog.set_visible(False)
+            self.panel_event_dialog_char.set_visible(False)
+            self.panel_event_dialog_label.set_visible(False)
+        else:
+            self.panel_event_dialog.set_visible(True)
+            if type(dialog) is dict:
+                for button in self.buttons_dialog_option:
+                    button.set_visible(False)
+                if 'speaker' in dialog and dialog['speaker'] != 'PLAYER':
+                    assert self.world.characters[dialog['speaker']].appearance['DEFAULT'] is not None
+                    self.panel_event_dialog_char.set_background_image(self.world.characters[dialog['speaker']].appearance['DEFAULT'])
+                    self.panel_event_dialog_char.set_visible(True)
+                if 'speaker' in dialog:
+                    labels = [
+                        self.world.characters[dialog['speaker']].name,
+                        dialog['content']
+                    ]
+                else:
+                    labels = [
+                        dialog['content']
+                    ]
+                self.panel_event_dialog_label.set_labels(labels)
+                self.panel_event_dialog_label.set_visible(True)
+            else:
+                option_idx = 0
+                for option_dialog in dialog:
+                    button = self.buttons_dialog_option[option_idx]
+                    if option_idx < len(dialog):
+                        button.set_visible(True)
+                        button.set_label(option_dialog['content'])
+                    else:
+                        button.set_visible(False)
+                    option_idx = option_idx + 1
 
     def set_game(self, game: GameController):
         super().set_game(game)
@@ -227,6 +353,9 @@ class POCRootController(Controller):
         elif self.world.status is edu.STATE_ACTION_END:
             self.on_action_end()
             return self.scene_action
+        elif self.world.status is edu.STATE_EVENT:
+            assert self.current_event is not None
+            return self.scene_event
         elif self.world.status is edu.STATE_IDLE:
             return self.scene_ending
 
@@ -238,6 +367,20 @@ class POCRootController(Controller):
         # elif event_name == 'mouse_click':
         #     self.on_mouse_click()
 
+    def try_trigger_event(self, event_type, next_state):
+        # Event
+        event = self.almanac.divine(self.world, event_type)
+        if event is None:
+            self.world.status = next_state
+        else:
+            self.world.status = edu.STATE_EVENT
+            self.world.event_type = edu.EVENT_CYCLE_BEGIN
+            self.current_event = event
+            conversation = event.get_conversation()
+            conversation.reset_dialog()
+            conversation.next_dialog(self.world)
+            self.build_event_scene(self.current_event)
+
     def on_cycle_begin(self):
         player = self.world.characters['PLAYER']
         player.strength = player.max_strength
@@ -246,7 +389,18 @@ class POCRootController(Controller):
         if current is not None:
             self.label_calendar.set_labels([current])
 
-        self.world.status = edu.STATE_WAIT_ACTION
+        # Event
+        self.try_trigger_event(edu.EVENT_CYCLE_BEGIN, edu.STATE_WAIT_ACTION)
+        # event = self.almanac.divine(self.world, edu.EVENT_CYCLE_BEGIN)
+        # if event is None:
+        #     self.world.status = edu.STATE_WAIT_ACTION
+        # else:
+        #     self.world.status = edu.STATE_EVENT
+        #     self.world.event_type = edu.EVENT_CYCLE_BEGIN
+        #     self.current_event = event
+        #     conversation = event.get_conversation()
+        #     conversation.next_dialog(self.world)
+        #     self.build_event_scene(self.current_event)
 
     def on_cycle_end(self):
         self.world.status = edu.STAGE_CYCLE_BEGIN
@@ -261,8 +415,22 @@ class POCRootController(Controller):
         if self.world.status is edu.STATE_INTRO:
             self.world.status = edu.STATE_CYCLE_BEGIN
             # TOTO: Add event
-        if self.world.status is edu.STATE_ACTION_BEGIN:
+        elif self.world.status is edu.STATE_ACTION_BEGIN:
             self.world.status = edu.STATE_ACTION_END
+        elif self.world.status is edu.STATE_EVENT:
+            assert self.current_event is not None
+            conversation = self.current_event.get_conversation()
+            if not conversation.is_waiting_input():
+                dialog = conversation.next_dialog(self.world)
+                if dialog is not None:
+                    self.build_event_scene(self.current_event)
+                else:
+                    self.current_event.post_event(self.world)
+                    if self.world.event_type is edu.EVENT_CYCLE_BEGIN:
+                        self.world.status = edu.STATE_WAIT_ACTION
+                    elif self.world.event_type is edu.EVENT_ACTION_BEGIN:
+                        self.world.status = edu.STATE_ACTION_BEGIN
+                    # TODO: Here to add more event redirections
         elif self.world.status is edu.STATE_IDLE:
             self.game.current_controller = self.game.new_controller('RECEPTION')
 

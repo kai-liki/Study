@@ -98,6 +98,7 @@ class World:
         self.stages = stages
         self.calendar = calendar
         self.status = STATE_START
+        self.event_type = EVENT_CYCLE_BEGIN
 
     def __getattr__(self, item):
         if item != "_attribute":
@@ -119,7 +120,7 @@ class World:
         pass
 
 
-class Dialog:
+class Conversation:
 
     # Example:
     # dialog_flow =
@@ -145,6 +146,9 @@ class Dialog:
         self.score = score
         self.scene_resource = scene_resource
         self._build_dialogs(dialog_flow)
+        self.dialog_index = -1
+
+    def reset_dialog(self):
         self.dialog_index = -1
 
     def _build_dialogs(self, dialog_flow):
@@ -179,12 +183,29 @@ class Dialog:
         else:
             return None
 
+    def has_next(self):
+        return self.dialog_index + 1 < len(self.dialog_list)
+
+    def get_scene_resource(self):
+        return self.scene_resource
+
+    def is_waiting_input(self):
+        dialog = self.get_current_dialog()
+        if dialog is not None:
+            return type(dialog) is list
+
+    def get_current_dialog(self):
+        if -1 < self.dialog_index < len(self.dialog_list):
+            return self.dialog_list[self.dialog_index]
+        else:
+            return None
+
 
 class Event:
 
-    def __init__(self, dialog: Dialog, condition_func, post_func):
+    def __init__(self, conversation: Conversation, condition_func, post_func):
         assert callable(condition_func)
-        self.dialog = dialog
+        self.conversation = conversation
         self.condition_func = condition_func
         self.post_func = post_func
 
@@ -193,6 +214,9 @@ class Event:
 
     def post_event(self, world: World):
         self.post_func(world)
+
+    def get_conversation(self):
+        return self.conversation
 
 
 class Almanac:
@@ -204,11 +228,15 @@ class Almanac:
             {},
             {},
             {},
-            {},
         ]
 
     def divine(self, world: World, event_stage: int):
-        pass
+        sublib = self.event_lib[event_stage]
+        applicable_events = [event for event_id, event in sublib.items() if event.match(world)]
+        if len(applicable_events) > 0:
+            i = random.randint(0, len(applicable_events) - 1)
+            return applicable_events[i]
+        return None
 
     def add_event(self, event_stage: int, event_id: str, event: Event):
         self.event_lib[event_stage][event_id] = event
@@ -246,9 +274,9 @@ def test_dialog():
         {'speaker': 'player', 'content': 'I don\'t have chance to speak.'},
         {'id': 'finish', 'content': 'The girl left me.'}
     ]
-    event_dialog = Dialog(None, dialog_flow, score)
+    event_conversation = Conversation(None, dialog_flow, score)
 
-    dialog = event_dialog.next_dialog(world)
+    dialog = event_conversation.next_dialog(world)
     while dialog is not None:
         if type(dialog) is dict:
             if 'speaker' in dialog:
@@ -256,7 +284,7 @@ def test_dialog():
             else:
                 print(str.format("{}",  dialog['content']))
             # option = input()
-            dialog = event_dialog.next_dialog(world)
+            dialog = event_conversation.next_dialog(world)
         else:
             for option_dialog in dialog:
                 if 'speaker' in option_dialog:
@@ -264,7 +292,7 @@ def test_dialog():
                 else:
                     print(str.format("- {}", option_dialog['content']))
             option = input()
-            dialog = event_dialog.next_dialog(world, int(option))
+            dialog = event_conversation.next_dialog(world, int(option))
 
     print(event_stage.score)
     print(world.stages[STAGE_EVENT].score)
@@ -304,7 +332,7 @@ def build_POC(ui_resources):
     character_player.max_strength = 100
 
     character_wife = Character(
-        {'NORMAL': ui_resources['CHAR_WIFE_NORMAL'],
+        {'DEFAULT': ui_resources['CHAR_WIFE_NORMAL'],
          'ANGRY': ui_resources['CHAR_WIFE_ANGRY']}
     )
     character_wife.name = 'MM'
@@ -376,6 +404,7 @@ def build_POC(ui_resources):
     def sunny_post(world: World):
         stage = world.stages[STAGE_CYCLE_BEGIN]
         stage.weather = 'Sunny'
+        stage.index = stage.index + 1
         player = world.characters['PLAYER']
         player.luckiness = 100
 
@@ -383,8 +412,8 @@ def build_POC(ui_resources):
         {'content': 'It''s a sunny day.'}
     ]
 
-    sunny_dialog = Dialog(ui_resources['SCENE_MAIN'], sunny_dialog_flow, no_score)
-    sunny_event = Event(sunny_dialog, sunny_condition, sunny_post)
+    sunny_conversation = Conversation(ui_resources['SCENE_MAIN'], sunny_dialog_flow, no_score)
+    sunny_event = Event(sunny_conversation, sunny_condition, sunny_post)
 
     # Build cycle begin events: raining event
     def raining_condition(world: World):
@@ -394,6 +423,7 @@ def build_POC(ui_resources):
     def raining_post(world: World):
         stage = world.stages[STAGE_CYCLE_BEGIN]
         stage.weather = 'Raining'
+        stage.index = stage.index + 1
         player = world.characters['PLAYER']
         player.luckiness = 50
 
@@ -401,8 +431,8 @@ def build_POC(ui_resources):
         {'content': 'It''s a raining day.'}
     ]
 
-    raining_dialog = Dialog(ui_resources['SCENE_MAIN'], raining_dialog_flow, no_score)
-    raining_event = Event(raining_dialog, raining_condition, raining_post)
+    raining_conversation = Conversation(ui_resources['SCENE_MAIN'], raining_dialog_flow, no_score)
+    raining_event = Event(raining_conversation, raining_condition, raining_post)
 
     # Build cycle end events: teach event
     def teach_condition(world: World):
@@ -436,29 +466,45 @@ def build_POC(ui_resources):
         elif oid == 'd1_reject':
             event_stage.score = -50
 
-    teach_dialog = Dialog(ui_resources['SCENE_KITCHEN'], teach_dialog_flow, teach_score)
-    teach_event = Event(teach_dialog, teach_condition, teach_post)
+    teach_conversation = Conversation(ui_resources['SCENE_KITCHEN'], teach_dialog_flow, teach_score)
+    teach_event = Event(teach_conversation, teach_condition, teach_post)
 
     # Build action begin events: first cook
     def first_cook_condition(world: World):
         return world.stages[STAGE_ACTION_BEGIN].is_first_cook
 
     def first_cook_post(world: World):
-        world.characters['PLAYER'].cook_skill = world.characters['PLAYER'].cook_skill + world.stages[STAGE_EVENT].score
+        world.characters['PLAYER'].cooking_skill = world.characters['PLAYER'].cooking_skill + world.stages[STAGE_EVENT].score
         world.stages[STAGE_ACTION_BEGIN].is_first_cook = False
 
+    # first_cook_dialog_flow = [
+    #     {'speaker': 'WIFE', 'content': '你会做饭吗？'},
+    #     [
+    #         {'speaker': 'PLAYER', 'content': '我会呀。', 'next': 'FINISH'},
+    #         {'speaker': 'PLAYER', 'content': '我不会。。。教教我吧。', 'next': 'TEACH_START', 'oid': 'd1_teach'},
+    #     ],
+    #     {'id': 'TEACH_START', 'speaker': 'WIFE', 'content': '先洗菜。'},
+    #     {'speaker': 'WIFE', 'content': '再热油。'},
+    #     {'speaker': 'WIFE', 'content': '把菜放进去，用铲子炒。'},
+    #     {'speaker': 'WIFE', 'content': '炒熟就好了。'},
+    #     {'speaker': 'PLAYER', 'content': '这不是废话吗？'},
+    #     {'id': 'FINISH', 'speaker': 'WIFE', 'content': '那你做饭去吧！'}
+    # ]
+
     first_cook_dialog_flow = [
-        {'speaker': 'WIFE', 'content': '你会做饭吗？'},
+        {'speaker': 'WIFE', 'content': 'Can you cook?'},
         [
-            {'speaker': 'PLAYER', 'content': '我会呀。', 'next': 'FINISH'},
-            {'speaker': 'PLAYER', 'content': '我不会。。。教教我吧。', 'next': 'TEACH_START', 'oid': 'd1_teach'},
+            {'speaker': 'PLAYER', 'content': 'Yes!', 'next': 'FINISH'},
+            {'speaker': 'PLAYER', 'content': 'No. Please teach me.', 'next': 'TEACH_START', 'oid': 'd1_teach'},
         ],
-        {'id': 'TEACH_START', 'speaker': 'WIFE', 'content': '先洗菜。'},
-        {'speaker': 'WIFE', 'content': '再热油。'},
-        {'speaker': 'WIFE', 'content': '把菜放进去，用铲子炒。'},
-        {'speaker': 'WIFE', 'content': '炒熟就好了。'},
-        {'speaker': 'PLAYER', 'content': '这不是废话吗？'},
-        {'id': 'FINISH', 'speaker': 'WIFE', 'content': '那你做饭去吧！'}
+        {'id': 'TEACH_START', 'speaker': 'WIFE', 'content': 'Wash vegetables first!'},
+        {'speaker': 'WIFE', 'content': 'Cut the vegetables to pieces.'},
+        {'speaker': 'WIFE', 'content': 'Then heat the oil.'},
+        {'speaker': 'WIFE', 'content': 'Put the vegetable to the pot.'},
+        {'speaker': 'WIFE', 'content': 'Stir and fry them.'},
+        {'speaker': 'WIFE', 'content': 'Then it''s done'},
+        {'speaker': 'PLAYER', 'content': '...'},
+        {'id': 'FINISH', 'speaker': 'WIFE', 'content': 'Go ahead!'}
     ]
 
     def first_cook_score(oid: str, world: World):
@@ -466,12 +512,12 @@ def build_POC(ui_resources):
         if oid == 'd1_teach':
             event_stage.score = 10
 
-    first_cook_dialog = Dialog(ui_resources['SCENE_KITCHEN'], first_cook_dialog_flow, first_cook_score)
-    first_cook_event = Event(first_cook_dialog, first_cook_condition, first_cook_post)
+    first_cook_conversation = Conversation(ui_resources['SCENE_KITCHEN'], first_cook_dialog_flow, first_cook_score)
+    first_cook_event = Event(first_cook_conversation, first_cook_condition, first_cook_post)
 
     # Build action begin events: random chat
     def random_chat_condition(world: World):
-        return random.randint(0, 7) == 1
+        return not world.stages[STAGE_ACTION_BEGIN].is_first_cook and random.randint(0, 7) == 1
 
     random_chat_dialog_flow = [
         {'speaker': 'WIFE', 'content': '进展怎么样？'},
@@ -479,8 +525,8 @@ def build_POC(ui_resources):
         {'speaker': 'WIFE', 'content': '加油加油！'}
     ]
 
-    random_chat_dialog = Dialog(ui_resources['SCENE_KITCHEN'], random_chat_dialog_flow, no_score)
-    random_chat_event = Event(random_chat_dialog, random_chat_condition, no_post)
+    random_chat_conversation = Conversation(ui_resources['SCENE_KITCHEN'], random_chat_dialog_flow, no_score)
+    random_chat_event = Event(random_chat_conversation, random_chat_condition, no_post)
 
     # Build action end events: love chat
     def love_chat_condition(world: World):
@@ -491,8 +537,8 @@ def build_POC(ui_resources):
         {'speaker': 'PLAYER', 'content': '么么哒。'}
     ]
 
-    love_chat_dialog = Dialog(ui_resources['SCENE_KITCHEN'], love_chat_dialog_flow, no_score)
-    love_chat_event = Event(love_chat_dialog, love_chat_condition, no_post)
+    love_chat_conversation = Conversation(ui_resources['SCENE_KITCHEN'], love_chat_dialog_flow, no_score)
+    love_chat_event = Event(love_chat_conversation, love_chat_condition, no_post)
 
     # Build khalas events: happy khalas
     def happy_khalas_condition(world: World):
@@ -507,8 +553,8 @@ def build_POC(ui_resources):
         {'speaker': 'PLAYER', 'content': '啊？？？'},
     ]
 
-    happy_khalas_dialog = Dialog(ui_resources['SCENE_ENDING'], happy_khalas_dialog_flow, no_score)
-    happy_khalas_event = Event(happy_khalas_dialog, happy_khalas_condition, no_post)
+    happy_khalas_conversation = Conversation(ui_resources['SCENE_ENDING'], happy_khalas_dialog_flow, no_score)
+    happy_khalas_event = Event(happy_khalas_conversation, happy_khalas_condition, no_post)
 
     # Build khalas events: sad khalas
     def sad_khalas_condition(world: World):
@@ -523,8 +569,8 @@ def build_POC(ui_resources):
         {'speaker': 'PLAYER', 'content': '啊？？？'},
     ]
 
-    sad_khalas_dialog = Dialog(ui_resources['SCENE_ENDING'], sad_khalas_dialog_flow, no_score)
-    sad_khalas_event = Event(sad_khalas_dialog, sad_khalas_condition, no_post)
+    sad_khalas_conversation = Conversation(ui_resources['SCENE_ENDING'], sad_khalas_dialog_flow, no_score)
+    sad_khalas_event = Event(sad_khalas_conversation, sad_khalas_condition, no_post)
 
     almanac = Almanac()
     almanac.add_event(EVENT_CYCLE_BEGIN, 'SUNNY', sunny_event)
