@@ -6,6 +6,9 @@ from common.game import GameController
 from common.resource import ImageResource, AnimationResource
 
 
+DEFAULT_SAVE='./SAVE0.DAT'
+
+
 class CookController(Controller):
     def __init__(self, world: edu.World, root_controller):
         super().__init__()
@@ -46,6 +49,8 @@ class LeaveController(Controller):
             self.on_leave()
 
     def on_leave(self):
+        self.world.save(DEFAULT_SAVE)
+
         self.world.status = edu.STATE_IDLE
         self.game.current_controller = self.get_game().new_controller('RECEPTION')
 
@@ -196,6 +201,7 @@ class POCRootController(Controller):
                                             self.ui_resources['ACTION_SAMPLE_OVER'],
                                             self.ui_resources['ACTION_SAMPLE_DOWN']))
         self.cook_controller = CookController(self.world, self)
+        self.cook_controller.set_game(self.game)
         self.button_cook.register_controller(self.cook_controller)
         self.scene_main.add_control(self.button_cook)
 
@@ -206,6 +212,7 @@ class POCRootController(Controller):
                                             self.ui_resources['ACTION_SAMPLE_OVER'],
                                             self.ui_resources['ACTION_SAMPLE_DOWN']))
         self.next_controller = NextController(self.world)
+        self.next_controller.set_game(self.game)
         self.button_next.register_controller(self.next_controller)
         self.scene_main.add_control(self.button_next)
 
@@ -216,6 +223,7 @@ class POCRootController(Controller):
                                             self.ui_resources['ACTION_SAMPLE_OVER'],
                                             self.ui_resources['ACTION_SAMPLE_DOWN']))
         self.leave_controller = LeaveController(self.world)
+        self.leave_controller.set_game(self.game)
         self.button_leave.register_controller(self.leave_controller)
         self.scene_main.add_control(self.button_leave)
 
@@ -323,7 +331,13 @@ class POCRootController(Controller):
         self.ui_resources: dict
 
         self.load_ui_resource()
-        world, almanac = edu.build_POC(self.ui_resources)
+
+    def initialize(self, saved_data=None):
+        if saved_data is None:
+            world, almanac = edu.build_POC(self.ui_resources)
+        else:
+            _, almanac = edu.build_POC(self.ui_resources)
+            world = saved_data
         self.world = world
         self.almanac = almanac
         self._init_scene()
@@ -373,9 +387,6 @@ class POCRootController(Controller):
 
     def set_game(self, game: GameController):
         super().set_game(game)
-        self.leave_controller.set_game(game)
-        self.next_controller.set_game(game)
-        self.cook_controller.set_game(game)
 
     def get_scene(self):
         if self.world.status is edu.STATE_START:
@@ -487,4 +498,7 @@ class POCRootController(Controller):
             self.world.status = edu.STAGE_INTRO
         else:
             stage.tick = stage.tick + 1
+
+    def load(self, filename: str=DEFAULT_SAVE):
+        return edu.load_world(filename)
 

@@ -15,7 +15,11 @@ elif PLATFORM is 'Darwin':
 
 class Controller:
     from common.game import GameController
-    game: GameController
+    def __init__(self) -> None:
+        self.game = None
+
+    def initialize(self, saved_data=None):
+        pass
 
     def set_game(self, game: GameController):
         self.game = game
@@ -28,6 +32,9 @@ class Controller:
 
     def get_scene(self):
         pass
+
+    def load(self, filename):
+        return None
 
 
 class Control:

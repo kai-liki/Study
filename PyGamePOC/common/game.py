@@ -24,7 +24,7 @@ class GameController:
 
         self.current_controller = self.new_controller(default)
 
-    def new_controller(self, key: str):
+    def new_controller(self, key: str, saved_data=None):
         controller_type = self.controllers[key]
         controller = controller_type()
         controller.set_game(self)

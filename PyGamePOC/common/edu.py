@@ -1,4 +1,6 @@
 import random
+import pickle
+
 
 EVENT_CYCLE_BEGIN = 0
 EVENT_CYCLE_END = 1
@@ -90,6 +92,10 @@ class Calendar:
             return None
 
 
+def load_world(filename: str):
+    return pickle.load(open(filename, 'rb'))
+
+
 class World:
 
     def __init__(self, characters: dict, stages: dict, calendar: Calendar):
@@ -118,6 +124,9 @@ class World:
 
     def deserialize(self):
         pass
+
+    def save(self, filename: str):
+        pickle.dump(self, open(filename, 'wb'))
 
 
 class Conversation:
@@ -595,5 +604,28 @@ def build_POC(ui_resources):
 
 if __name__ == "__main__":
     # test_dialog()
-    build_POC()
+    from resource import ImageResource
+    # ui_resources = {
+    #     'CHAR_WIFE_NORMAL': ImageResource('CHAR_WIFE_NORMAL', '../resources/imgs/NPC01.gif', (76, 0), (70, 95)),
+    #     'CHAR_WIFE_ANGRY': ImageResource('CHAR_WIFE_ANGRY', '../resources/imgs/NPC01.gif', (1, 0), (70, 95)),
+    #     'SCENE_INTRO': ImageResource('SCENE_INTRO', 'resources/imgs/Livingroom.gif', (0, 0), (320, 240)),
+    #     'SCENE_MAIN': ImageResource('SCENE_MAIN', 'resources/imgs/Livingroom.gif', (0, 0), (320, 240)),
+    #     'SCENE_ACTION': ImageResource('SCENE_ACTION', 'resources/imgs/Livingroom.gif', (0, 0), (320, 240)),
+    #     'SCENE_ENDING': ImageResource('SCENE_ENDING', 'resources/imgs/Livingroom.gif', (0, 0), (320, 240)),
+    #     'SCENE_KITCHEN': ImageResource('SCENE_KITCHEN', 'resources/imgs/Kitchen.gif', (0, 0), (320, 240)),
+    #     'PANEL_ACTION': ImageResource('PANEL_ACTION', 'resources/imgs/ActionPanel.gif', (0, 0), (200, 150)),
+    #     'PANEL_MESSAGE': ImageResource('PANEL_MESSAGE', 'resources/imgs/MessagePanel.gif', (0, 0), (150, 150)),
+    #     'PANEL_DIALOG': ImageResource('PANEL_DIALOG', 'resources/imgs/DialogPanel.gif', (0, 0), (320, 120)),
+    #     'ACTION_SAMPLE_NORMAL': ImageResource('ACTION_SAMPLE_NORMAL', 'resources/imgs/ActionButton.gif', (0, 0), (50, 50)),
+    #     'ACTION_SAMPLE_OVER': ImageResource('ACTION_SAMPLE_OVER', 'resources/imgs/ActionButton.gif', (50, 0), (50, 50)),
+    #     'ACTION_SAMPLE_DOWN': ImageResource('ACTION_SAMPLE_DOWN', 'resources/imgs/ActionButton.gif', (100, 0), (50, 50)),
+    #     'OPTION_DEFAULT_NORMAL': ImageResource('OPTION_DEFAULT_NORMAL', 'resources/imgs/OptionButton.gif', (0, 0), (280, 20)),
+    #     'OPTION_DEFAULT_OVER': ImageResource('OPTION_DEFAULT_OVER', 'resources/imgs/OptionButton.gif', (0, 20), (280, 20)),
+    #     'OPTION_DEFAULT_DOWN': ImageResource('OPTION_DEFAULT_DOWN', 'resources/imgs/OptionButton.gif', (0, 40), (280, 20))
+    # }
+    # world, almanac = build_POC(ui_resources)
+    # pickle.dump(world, open('myworld.obj', 'wb'))
+
+    world = pickle.load(open('myworld.obj', 'rb'))
+    print(world)
 

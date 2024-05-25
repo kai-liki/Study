@@ -11,6 +11,7 @@ class NewGameController(Controller):
 
     def on_new_game(self):
         root_controller = self.get_game().new_controller('ROOT')
+        root_controller.initialize()
         self.get_game().current_controller = root_controller
 
 
@@ -21,7 +22,10 @@ class LoadGameController(Controller):
             self.on_load_game()
 
     def on_load_game(self):
-        print("Load Game")
+        root_controller = self.get_game().new_controller('ROOT')
+        saved_data = root_controller.load()
+        root_controller.initialize(saved_data)
+        self.get_game().current_controller = root_controller
 
 
 class QuitGameController(Controller):
@@ -31,7 +35,7 @@ class QuitGameController(Controller):
             self.on_quit_game()
 
     def on_quit_game(self):
-        print("Quit Game")
+        # print("Quit Game")
         self.game.running = False
 
 
