@@ -341,7 +341,7 @@ def build_POC(ui_resources):
     # Build stages
     stage_start = Stage()
     stage_start.tick = 0
-    stage_start.max_tick = 200
+    stage_start.max_tick = 25
 
     stage_intro = Stage()
 

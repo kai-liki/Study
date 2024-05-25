@@ -49,7 +49,7 @@ class GameController:
             # flip() the display to put your work on screen
             pygame.display.flip()
 
-            self.clock.tick(60)
+            self.clock.tick(16)
 
         pygame.quit()
 

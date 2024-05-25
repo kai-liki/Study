@@ -1,9 +1,9 @@
 import pygame
 
-from common.control import Controller, Scene, Button, Panel, VisibleControl, Label
+from common.control import Controller, Scene, Button, Panel, VisibleControl, Label, Animation, AttributeLabel
 import common.edu as edu
 from common.game import GameController
-from common.resource import ImageResource
+from common.resource import ImageResource, AnimationResource
 
 
 class CookController(Controller):
@@ -110,7 +110,8 @@ class POCRootController(Controller):
             'ACTION_SAMPLE_DOWN': ImageResource('ACTION_SAMPLE_DOWN', 'resources/imgs/ActionButton.gif', (100, 0), (50, 50)),
             'OPTION_DEFAULT_NORMAL': ImageResource('OPTION_DEFAULT_NORMAL', 'resources/imgs/OptionButton.gif', (0, 0), (280, 20)),
             'OPTION_DEFAULT_OVER': ImageResource('OPTION_DEFAULT_OVER', 'resources/imgs/OptionButton.gif', (0, 20), (280, 20)),
-            'OPTION_DEFAULT_DOWN': ImageResource('OPTION_DEFAULT_DOWN', 'resources/imgs/OptionButton.gif', (0, 40), (280, 20))
+            'OPTION_DEFAULT_DOWN': ImageResource('OPTION_DEFAULT_DOWN', 'resources/imgs/OptionButton.gif', (0, 40), (280, 20)),
+            'JUMP_BALL': AnimationResource('JUMP_BALL', 'resources/imgs/JumpBall.png', (0, 0), (16, 16), 12),
         }
 
     def _init_scene(self):
@@ -142,8 +143,43 @@ class POCRootController(Controller):
 
         # Build MAIN scene
         self.scene_main.register_controller(self)
-        self.scene_main.set_size(320,240)
+        self.scene_main.set_size(320, 240)
         self.scene_main.set_background_image(self.ui_resources['SCENE_MAIN'])
+
+        player_attribute_panel = Panel('PANEL_PLAYER_ATTRIB')
+        player_attribute_panel.set_size(100, 80)
+        player_attribute_panel.set_position(1, 1)
+        player_attribute_panel.set_bg_color((0, 0, 255))
+        self.scene_main.add_control(player_attribute_panel)
+
+        player_attrib_strength = AttributeLabel('ATTRIB_LABEL_PLAYER_STRENGTH', self.world.characters['PLAYER'], '体力', 'strength')
+        player_attrib_strength.set_size(80, 20)
+        player_attrib_strength.set_position(10, 2)
+        player_attrib_strength.set_bg_color((255, 255, 255))
+        player_attrib_strength.set_title_font(pygame.font.SysFont('songti', 10))
+        player_attrib_strength.set_title_color((255, 0, 0))
+        player_attrib_strength.set_attribute_font(pygame.font.SysFont('songti', 10))
+        player_attrib_strength.set_attribute_color((0, 0, 0))
+
+        player_attrib_cooking_skill = AttributeLabel('ATTRIB_LABEL_PLAYER_COOKING', self.world.characters['PLAYER'], '厨艺', 'cooking_skill')
+        player_attrib_cooking_skill.set_size(80, 20)
+        player_attrib_cooking_skill.set_position(10, 25)
+        player_attrib_cooking_skill.set_bg_color((255, 255, 255))
+        player_attrib_cooking_skill.set_title_font(pygame.font.SysFont('songti', 10))
+        player_attrib_cooking_skill.set_title_color((255, 0, 0))
+        player_attrib_cooking_skill.set_attribute_font(pygame.font.SysFont('songti', 10))
+        player_attrib_cooking_skill.set_attribute_color((0, 0, 0))
+
+        player_attrib_luckiness = AttributeLabel('ATTRIB_LABEL_PLAYER_LUCKINESS', self.world.characters['PLAYER'], '运气', 'luckiness')
+        player_attrib_luckiness.set_size(80, 20)
+        player_attrib_luckiness.set_position(10, 48)
+        player_attrib_luckiness.set_bg_color((255, 255, 255))
+        player_attrib_luckiness.set_title_font(pygame.font.SysFont('songti', 10))
+        player_attrib_luckiness.set_title_color((255, 0, 0))
+        player_attrib_luckiness.set_attribute_font(pygame.font.SysFont('songti', 10))
+        player_attrib_luckiness.set_attribute_color((0, 0, 0))
+
+        player_attribute_panel.add_controls([player_attrib_strength, player_attrib_cooking_skill, player_attrib_luckiness])
 
         # self.label_calendar.register_controller(Controller())
         self.label_calendar.set_size(40, 20)
@@ -209,25 +245,30 @@ class POCRootController(Controller):
         self.panel_event_dialog.set_size(300, 120)
         self.panel_event_dialog.set_position(10, 110)
         self.panel_event_dialog.set_visible(False)
-        self.panel_event_dialog.set_layer(1)
+        # self.panel_event_dialog.set_layer(1)
         self.event_dialog_controller = EventDialogController(self.world)
         self.panel_event_dialog.register_controller(self.event_dialog_controller)
         self.scene_event.add_control(self.panel_event_dialog)
 
         self.panel_event_dialog_label.set_size(280, 40)
-        self.panel_event_dialog_label.set_position(20, 112)
+        self.panel_event_dialog_label.set_position(10, 2)
         self.panel_event_dialog_label.set_font(pygame.font.SysFont('songti', 12))
-        # self.panel_event_dialog_label.set_font(pygame.font.SysFont('Xingkai', 12))
         self.panel_event_dialog_label.set_label_space(15)
         self.panel_event_dialog_label.set_visible(False)
-        self.panel_event_dialog_label.set_layer(2)
-        self.scene_event.add_control(self.panel_event_dialog_label)
+        self.panel_event_dialog_label.set_layer(1)
+        self.panel_event_dialog.add_control(self.panel_event_dialog_label)
+
+        jump_ball = Animation('JUMP_BALL', self.ui_resources['JUMP_BALL'])
+        jump_ball.set_size(16, 16)
+        jump_ball.set_position(280, 100)
+        jump_ball.set_layer(3)
+        self.panel_event_dialog.add_control(jump_ball)
 
         option_idx = 0
         for button in self.buttons_dialog_option:
             option_button_controller = EventDialogOptionController(self.world, option_idx, self)
             button.set_size(280, 20)
-            button.set_position(20, 155 + option_idx * 22)
+            button.set_position(10, 50 + option_idx * 22)
             button.set_font(pygame.font.SysFont('songti', 12))
             button.set_layer(3)
             button.set_label('Option')
@@ -236,7 +277,7 @@ class POCRootController(Controller):
                                       self.ui_resources['OPTION_DEFAULT_DOWN']))
             button.set_visible(False)
             button.register_controller(option_button_controller)
-            self.scene_event.add_control(button)
+            self.panel_event_dialog.add_control(button)
             option_idx = option_idx + 1
 
         self.panel_event_dialog_char.set_size(80, 100)
@@ -376,7 +417,7 @@ class POCRootController(Controller):
             self.world.status = next_state
         else:
             self.world.status = edu.STATE_EVENT
-            self.world.event_type = edu.EVENT_CYCLE_BEGIN
+            self.world.event_type = event_type
             self.current_event = event
             conversation = event.get_conversation()
             conversation.reset_dialog()
@@ -408,6 +449,7 @@ class POCRootController(Controller):
         self.world.status = edu.STAGE_CYCLE_BEGIN
 
     def on_action_end(self):
+        self.try_trigger_event(edu.EVENT_ACTION_END, edu.STATE_WAIT_ACTION)
         player = self.world.characters['PLAYER']
         player.strength = 0 if player.strength < 10 else player.strength - 10
         self.button_cook.set_is_enabled(player.strength >= 10)

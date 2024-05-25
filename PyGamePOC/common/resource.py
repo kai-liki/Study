@@ -25,15 +25,17 @@ class AnimationResource:
         self.frames = frames
         self.current_frame = 0
 
-    def render(self):
+    def render(self, repeat=True):
         surface = get_animation_frame_surface(self, self.current_frame)
-        self.current_frame = self.current_frame + 1
-        if self.current_frame >= self.frames:
-            self.current_frame = 0
+        if self.current_frame + 1 >= self.frames:
+            if repeat:
+                self.current_frame = 0
+        else:
+            self.current_frame = self.current_frame + 1
         return surface
 
 
-def play_animation(animation_resource: AnimationResource, start_frame: int = 0):
+def play_animation(animation_resource: AnimationResource, start_frame: int = 0, repeat=True):
     pygame.init()
     clock = pygame.time.Clock()
     flags = pygame.SHOWN | pygame.SCALED | pygame.RESIZABLE  # | pygame.FULLSCREEN
@@ -47,9 +49,12 @@ def play_animation(animation_resource: AnimationResource, start_frame: int = 0):
         screen.fill('white')
 
         surface = get_animation_frame_surface(animation_resource, frame)
-        frame = frame + 1
-        if frame >= animation_resource.frames:
-            frame = 0
+
+        if frame + 1 >= animation_resource.frames:
+            if repeat:
+                frame = 0
+        else:
+            frame = frame + 1
 
         # process event
         for event in pygame.event.get():
@@ -102,21 +107,22 @@ def load_animation(animation_resource: AnimationResource):
     if animation_resource.id not in pixel_animations.keys():
         source_surface = get_full_image_surface(animation_resource.filename)
         pxarray = pygame.PixelArray(source_surface)
-        pixel_images[animation_resource.id] = []
+        pixel_animations[animation_resource.id] = []
         (x, y) = animation_resource.offset
         width = animation_resource.size[0]
         for i in range(animation_resource.frames):
             rect = pygame.Rect((x + i * width, y), animation_resource.size)
             newarray = pxarray[rect.x:rect.x+rect.width, rect.y:rect.y+rect.height]
-            pixel_images[animation_resource.id].append(newarray)
+            pixel_animations[animation_resource.id].append(newarray)
 
 
 def get_animation_frame_surface(animation_resource: AnimationResource, frame: int):
-    newarray = pixel_images[animation_resource.id][frame]
+    global pixel_animations
+    newarray = pixel_animations[animation_resource.id][frame]
     return newarray.make_surface()
 
 
 if __name__ == "__main__":
     resource = AnimationResource('BALL', '../resources/imgs/JumpBall.png', (0, 0), (16, 16), 12)
-    play_animation(resource)
+    play_animation(resource, start_frame=5, repeat=False)
 

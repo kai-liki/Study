@@ -1,6 +1,6 @@
 import pygame
 
-from common.resource import get_image_surface, ImageResource
+from common.resource import get_image_surface, ImageResource, AnimationResource, load_animation
 
 
 class Controller:
@@ -91,9 +91,9 @@ class VisibleControl(Control):
         return surface
 
 
-class Scene(VisibleControl):
-    def __init__(self, name: str, visible_controls=None):
-        super().__init__(name)
+class Panel(VisibleControl):
+    def __init__(self, name: str, visible_controls=None, controllers=None, game_controller=None):
+        super().__init__(name, controllers, game_controller)
         self.visible_controls = visible_controls if visible_controls is not None else []
 
     def add_control(self, control: VisibleControl):
@@ -116,6 +116,16 @@ class Scene(VisibleControl):
                 del self.visible_controls[i]
                 break
 
+    def render(self):
+        surface = super().render()
+        if len(self.visible_controls) != 0:
+            for control in self.visible_controls:
+                if control.is_visible:
+                    control_surface = control.render().convert_alpha()
+                    surface.blit(control_surface, control.get_rect())
+
+        return surface
+
     def handle_event(self, event):
         if event.type == pygame.KEYUP:
             for controller in self.controllers:
@@ -126,9 +136,10 @@ class Scene(VisibleControl):
         elif event.type in [pygame.MOUSEBUTTONUP, pygame.MOUSEBUTTONDOWN]:
             processed = False
             mouse_pos = pygame.mouse.get_pos()
+            (x, y) = mouse_pos[0] - self.x, mouse_pos[1] - self.y
             for control in self.visible_controls:
                 rect = control.get_rect()
-                if rect.collidepoint(mouse_pos):
+                if rect.collidepoint((x, y)):
                     control.handle_event(event)
                     processed = True
             if not processed:
@@ -142,18 +153,17 @@ class Scene(VisibleControl):
         elif event.type == pygame.MOUSEMOTION:
             processed = False
             mouse_pos = pygame.mouse.get_pos()
+            (x, y) = mouse_pos[0] - self.x, mouse_pos[1] - self.y
             for control in self.visible_controls:
                 rect = control.get_rect()
-                if rect.collidepoint(mouse_pos):
-                    if not control.get_is_mouse_over():
-                        control.set_is_mouse_over(True)
-                        control.handle_event(event)
+                if rect.collidepoint((x, y)):
+                    control.set_is_mouse_over(True)
+                    control.handle_event(event)
                     processed = True
                 else:
-                    if control.get_is_mouse_over():
-                        control.set_is_mouse_over(False)
-                        control.handle_event(event)
-                        processed = True
+                    control.set_is_mouse_over(False)
+                    control.handle_event(event)
+                    processed = True
 
             if not processed:
                 mouse_buttons = pygame.mouse.get_pressed(3)
@@ -161,19 +171,27 @@ class Scene(VisibleControl):
                 for controller in self.controllers:
                     controller.process(event_name='on_mouse_move', pos=mouse_pos, rel=mouse_rel, buttons=mouse_buttons)
 
+
+class Scene(Panel):
+    def __init__(self, name: str, visible_controls=None, controllers=None, game_controller=None):
+        super().__init__(name, visible_controls, controllers, game_controller)
+
+
+class Animation(VisibleControl):
+    def __init__(self, name, resource: AnimationResource, repeat: bool = True, controllers=None, game_controller=None):
+        super().__init__(name, controllers, game_controller)
+        self.animation_resource = resource
+        self.repeat = repeat
+        load_animation(self.animation_resource)
+
     def render(self):
-        surface = super().render()
-        if len(self.visible_controls) != 0:
-            for control in self.visible_controls:
-                if control.is_visible:
-                    control_surface = control.render().convert_alpha()
-                    surface.blit(control_surface, control.get_rect())
-
+        surface = pygame.surface.Surface((self.width, self.height))
+        if self.animation_resource is None:
+            surface.fill(self.bg_color)
+        else:
+            surface = self.animation_resource.render(self.repeat)
+            surface = surface.convert_alpha()
         return surface
-
-
-class Panel(VisibleControl):
-    pass
 
 
 class Label(VisibleControl):
@@ -207,6 +225,54 @@ class Label(VisibleControl):
             label_pos = (border_rect.width / 2 - label_rect.width / 2, i * self.label_space + border_rect.height / 2 - label_rect.height / 2)
             surface.blit(label_surface, pygame.rect.Rect(label_pos[0], label_pos[1], self.width, self.height))
             i = i + 1
+        return surface
+
+
+class AttributeLabel(VisibleControl):
+
+    def __init__(self, name, binding_object: object, title: str, attribute: str,  controllers=None, game_controller=None):
+        super().__init__(name, controllers, game_controller)
+        self.binding_object = binding_object
+        self.title = title
+        self.title_color = (255, 255, 255)
+        self.title_font = pygame.font.SysFont('songti', 14)
+        self.title_width = 20
+        self.attribute_color = (255, 255, 255)
+        self.attribute_font = pygame.font.SysFont('songti', 14)
+        self.attribute = attribute
+
+    def set_title_color(self, label_color: tuple):
+        self.title_color = label_color
+
+    def set_title_font(self, font: pygame.font.SysFont):
+        self.title_font = font
+
+    def set_title_width(self, width: int):
+        self.title_width = width
+
+    def set_attribute_color(self, attribute_color: tuple):
+        self.attribute_color = attribute_color
+
+    def set_attribute_font(self, font: pygame.font.SysFont):
+        self.attribute_font = font
+
+    def render(self):
+        surface = super().render()
+
+        title_surface = self.title_font.render(self.title, True, self.title_color)
+        title_rect = title_surface.get_rect()
+        title_pos = (0, 0)
+
+        try:
+            attribute_value = getattr(self.binding_object, self.attribute)
+        except ():
+            attribute_value = ''
+        attribute_surface = self.attribute_font.render(str(attribute_value), True, self.attribute_color)
+        attribute_rect = attribute_surface.get_rect()
+        attribute_pos = (self.title_width, 0)
+
+        surface.blit(title_surface, pygame.rect.Rect(title_pos, title_rect.size))
+        surface.blit(attribute_surface, pygame.rect.Rect(attribute_pos, attribute_rect.size))
         return surface
 
 
