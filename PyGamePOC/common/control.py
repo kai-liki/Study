@@ -1,6 +1,16 @@
 import pygame
+import platform
 
 from common.resource import get_image_surface, ImageResource, AnimationResource, load_animation
+
+
+PLATFORM = platform.system()
+FONT_NAME='songti'
+if PLATFORM is 'Windows':
+    FONT_NAME='simhei'
+elif PLATFORM is 'Darwin':
+    FONT_NAME='songti'
+
 
 
 class Controller:
@@ -200,7 +210,7 @@ class Label(VisibleControl):
         super().__init__(name, controllers, game_controller)
         self.labels = ['Text']
         self.label_color = (255, 255, 255)
-        self.label_font = pygame.font.SysFont('songti', 14)
+        self.label_font = pygame.font.SysFont(FONT_NAME, 14)
         self.label_space = 10
 
     def set_labels(self, labels: list):
@@ -235,10 +245,10 @@ class AttributeLabel(VisibleControl):
         self.binding_object = binding_object
         self.title = title
         self.title_color = (255, 255, 255)
-        self.title_font = pygame.font.SysFont('songti', 14)
+        self.title_font = pygame.font.SysFont(FONT_NAME, 14)
         self.title_width = 20
         self.attribute_color = (255, 255, 255)
-        self.attribute_font = pygame.font.SysFont('songti', 14)
+        self.attribute_font = pygame.font.SysFont(FONT_NAME, 14)
         self.attribute = attribute
 
     def set_title_color(self, label_color: tuple):
@@ -282,7 +292,7 @@ class Button(VisibleControl):
         super().__init__(name, controllers, game_controller)
         self.label = 'Button'
         self.label_color = (255, 255, 255)
-        self.label_font = pygame.font.SysFont('songti', 14)
+        self.label_font = pygame.font.SysFont(FONT_NAME, 14)
 
         self.img_file_normal = ImageResource('default_button_normal', 'resources/imgs/Button.gif', (0, 0), (200, 50))
         self.img_file_over = ImageResource('default_button_over', 'resources/imgs/Button.gif', (0, 50), (200, 50))

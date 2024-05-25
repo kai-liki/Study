@@ -1,6 +1,6 @@
 import pygame
 
-from common.control import Controller, Scene, Button, Panel, VisibleControl, Label, Animation, AttributeLabel
+from common.control import FONT_NAME, Controller, Scene, Button, Panel, VisibleControl, Label, Animation, AttributeLabel
 import common.edu as edu
 from common.game import GameController
 from common.resource import ImageResource, AnimationResource
@@ -138,7 +138,7 @@ class POCRootController(Controller):
         intro_label.set_label_color((255, 255, 255))
         intro_label.set_size(100, 100)
         intro_label.set_position(100, 90)
-        intro_label.set_font(pygame.font.SysFont('songti', 10))
+        intro_label.set_font(pygame.font.SysFont(FONT_NAME, 10))
         self.scene_intro.add_control(intro_label)
 
         # Build MAIN scene
@@ -156,27 +156,27 @@ class POCRootController(Controller):
         player_attrib_strength.set_size(80, 20)
         player_attrib_strength.set_position(10, 2)
         player_attrib_strength.set_bg_color((255, 255, 255))
-        player_attrib_strength.set_title_font(pygame.font.SysFont('songti', 10))
+        player_attrib_strength.set_title_font(pygame.font.SysFont(FONT_NAME, 10))
         player_attrib_strength.set_title_color((255, 0, 0))
-        player_attrib_strength.set_attribute_font(pygame.font.SysFont('songti', 10))
+        player_attrib_strength.set_attribute_font(pygame.font.SysFont(FONT_NAME, 10))
         player_attrib_strength.set_attribute_color((0, 0, 0))
 
         player_attrib_cooking_skill = AttributeLabel('ATTRIB_LABEL_PLAYER_COOKING', self.world.characters['PLAYER'], '厨艺', 'cooking_skill')
         player_attrib_cooking_skill.set_size(80, 20)
         player_attrib_cooking_skill.set_position(10, 25)
         player_attrib_cooking_skill.set_bg_color((255, 255, 255))
-        player_attrib_cooking_skill.set_title_font(pygame.font.SysFont('songti', 10))
+        player_attrib_cooking_skill.set_title_font(pygame.font.SysFont(FONT_NAME, 10))
         player_attrib_cooking_skill.set_title_color((255, 0, 0))
-        player_attrib_cooking_skill.set_attribute_font(pygame.font.SysFont('songti', 10))
+        player_attrib_cooking_skill.set_attribute_font(pygame.font.SysFont(FONT_NAME, 10))
         player_attrib_cooking_skill.set_attribute_color((0, 0, 0))
 
         player_attrib_luckiness = AttributeLabel('ATTRIB_LABEL_PLAYER_LUCKINESS', self.world.characters['PLAYER'], '运气', 'luckiness')
         player_attrib_luckiness.set_size(80, 20)
         player_attrib_luckiness.set_position(10, 48)
         player_attrib_luckiness.set_bg_color((255, 255, 255))
-        player_attrib_luckiness.set_title_font(pygame.font.SysFont('songti', 10))
+        player_attrib_luckiness.set_title_font(pygame.font.SysFont(FONT_NAME, 10))
         player_attrib_luckiness.set_title_color((255, 0, 0))
-        player_attrib_luckiness.set_attribute_font(pygame.font.SysFont('songti', 10))
+        player_attrib_luckiness.set_attribute_font(pygame.font.SysFont(FONT_NAME, 10))
         player_attrib_luckiness.set_attribute_color((0, 0, 0))
 
         player_attribute_panel.add_controls([player_attrib_strength, player_attrib_cooking_skill, player_attrib_luckiness])
@@ -186,7 +186,7 @@ class POCRootController(Controller):
         self.label_calendar.set_position(260, 20)
         self.label_calendar.set_labels([''])
         self.label_calendar.set_label_color((255, 255, 255))
-        self.label_calendar.set_font(pygame.font.SysFont('songti', 18))
+        self.label_calendar.set_font(pygame.font.SysFont(FONT_NAME, 18))
         self.scene_main.add_control(self.label_calendar)
 
         self.button_cook.set_size(50, 50)
@@ -252,7 +252,7 @@ class POCRootController(Controller):
 
         self.panel_event_dialog_label.set_size(280, 40)
         self.panel_event_dialog_label.set_position(10, 2)
-        self.panel_event_dialog_label.set_font(pygame.font.SysFont('songti', 12))
+        self.panel_event_dialog_label.set_font(pygame.font.SysFont(FONT_NAME, 12))
         self.panel_event_dialog_label.set_label_space(15)
         self.panel_event_dialog_label.set_visible(False)
         self.panel_event_dialog_label.set_layer(1)
@@ -269,7 +269,7 @@ class POCRootController(Controller):
             option_button_controller = EventDialogOptionController(self.world, option_idx, self)
             button.set_size(280, 20)
             button.set_position(10, 50 + option_idx * 22)
-            button.set_font(pygame.font.SysFont('songti', 12))
+            button.set_font(pygame.font.SysFont(FONT_NAME, 12))
             button.set_layer(3)
             button.set_label('Option')
             button.set_button_images((self.ui_resources['OPTION_DEFAULT_NORMAL'],
