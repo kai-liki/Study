@@ -66,15 +66,15 @@ class ActionController(Controller):
             self.world.status = edu.STATE_ACTION_END
 
 
-class EventDialogController(Controller):
-    def __init__(self, world: edu.World):
-        super().__init__()
-        self.world = world
+# class EventDialogController(Controller):
+#     def __init__(self, world: edu.World):
+#         super().__init__()
+#         self.world = world
 
-    def process(self, **kwargs):
-        event_name = kwargs['event_name']
-        if event_name == 'mouse_click':
-            print('Click event dialog panel')
+#     def process(self, **kwargs):
+#         event_name = kwargs['event_name']
+#         if event_name == 'mouse_click':
+#             print('Click event dialog panel')
 
 
 class EventDialogOptionController(Controller):
@@ -254,8 +254,8 @@ class POCRootController(Controller):
         self.panel_event_dialog.set_position(10, 110)
         self.panel_event_dialog.set_visible(False)
         # self.panel_event_dialog.set_layer(1)
-        self.event_dialog_controller = EventDialogController(self.world)
-        self.panel_event_dialog.register_controller(self.event_dialog_controller)
+        # self.event_dialog_controller = EventDialogController(self.world)
+        # self.panel_event_dialog.register_controller(self.event_dialog_controller)
         self.scene_event.add_control(self.panel_event_dialog)
 
         self.panel_event_dialog_label.set_size(280, 40)
@@ -348,7 +348,7 @@ class POCRootController(Controller):
     def build_event_scene(self, event: edu.Event):
         conversation = event.get_conversation()
         self.scene_event.set_background_image(conversation.get_scene_resource())
-        dialog = conversation.get_current_dialog()
+        dialog = conversation.current_dialog()
         if dialog is None:
             self.panel_event_dialog.set_visible(False)
             self.panel_event_dialog_char.set_visible(False)

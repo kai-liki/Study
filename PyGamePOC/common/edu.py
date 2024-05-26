@@ -119,15 +119,9 @@ class World:
     def applicable_actions(self):
         return ()
 
-    def serialize(self):
-        pass
-
-    def deserialize(self):
-        pass
-
     def save(self, filename: str):
         pickle.dump(self, open(filename, 'wb'))
-
+ 
 
 class Conversation:
 
@@ -199,11 +193,11 @@ class Conversation:
         return self.scene_resource
 
     def is_waiting_input(self):
-        dialog = self.get_current_dialog()
+        dialog = self.current_dialog()
         if dialog is not None:
             return type(dialog) is list
 
-    def get_current_dialog(self):
+    def current_dialog(self):
         if -1 < self.dialog_index < len(self.dialog_list):
             return self.dialog_list[self.dialog_index]
         else:

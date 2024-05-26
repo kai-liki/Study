@@ -56,7 +56,7 @@ class VisibleControl(Control):
     def __init__(self, name, controllers=None, game_controller=None):
         super().__init__(name, controllers, game_controller)
         self.x, self.y = (0, 0)
-        self.width, height = (100, 100)
+        self.width, self.height = (100, 100)
         self.layer = 0
         self.bg_color = (0, 0, 0)
         self.is_mouse_over = False
@@ -156,7 +156,7 @@ class Panel(VisibleControl):
             (x, y) = mouse_pos[0] - self.x, mouse_pos[1] - self.y
             for control in self.visible_controls:
                 rect = control.get_rect()
-                if rect.collidepoint((x, y)):
+                if rect.collidepoint((x, y)) and control.is_visible:
                     control.handle_event(event)
                     processed = True
             if not processed:
@@ -173,11 +173,11 @@ class Panel(VisibleControl):
             (x, y) = mouse_pos[0] - self.x, mouse_pos[1] - self.y
             for control in self.visible_controls:
                 rect = control.get_rect()
-                if rect.collidepoint((x, y)):
+                if rect.collidepoint((x, y)) and control.is_visible:
                     control.set_is_mouse_over(True)
                     control.handle_event(event)
                     processed = True
-                else:
+                elif control.is_visible:
                     control.set_is_mouse_over(False)
                     control.handle_event(event)
                     processed = True
